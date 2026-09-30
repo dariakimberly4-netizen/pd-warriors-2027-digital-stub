@@ -1,6 +1,24 @@
 const APP_KEY='pdw2027_offline_stub_v1';
 const STAFF_KEY='pdw2027_staff';
 const DEMO_PASS='PDW2027!';
+const STAFF_ACCOUNTS={
+  Gen:{role:'ADMIN',label:'Admin 1 - Gen'},
+  Bot:{role:'ADMIN',label:'Admin 2 - Bot'},
+  Kim:{role:'ADMIN',label:'Admin 3 - Kim'},
+  Registration:{role:'REGISTRATION',label:'Attendee Registration'},
+  QR:{role:'QR_RELEASE',label:'Digital Stub Release'},
+  Snack:{role:'SNACK',label:'Snack Claiming'},
+  Lunch:{role:'LUNCH',label:'Lunch / Food Claiming'},
+  Raffle:{role:'RAFFLE',label:'Raffle Claiming'}
+};
+const ROLE_PERMISSIONS={
+  ADMIN:{views:['claim','masterlist','attendees','raffle','backup'],claims:['SNACK','LUNCH','RAFFLE'],addAttendee:true,qrRelease:true,masterlist:true,raffleDraw:true,backup:true},
+  REGISTRATION:{views:['attendees'],claims:[],addAttendee:true,qrRelease:false,masterlist:false,raffleDraw:false,backup:false},
+  QR_RELEASE:{views:['attendees'],claims:[],addAttendee:false,qrRelease:true,masterlist:false,raffleDraw:false,backup:false},
+  SNACK:{views:['claim'],claims:['SNACK'],addAttendee:false,qrRelease:false,masterlist:false,raffleDraw:false,backup:false},
+  LUNCH:{views:['claim'],claims:['LUNCH'],addAttendee:false,qrRelease:false,masterlist:false,raffleDraw:false,backup:false},
+  RAFFLE:{views:['claim','raffle'],claims:['RAFFLE'],addAttendee:false,qrRelease:false,masterlist:false,raffleDraw:true,backup:false}
+};
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 
@@ -96,6 +114,10 @@ function newState(){return{version:2,attendees:structuredClone(sampleAttendees),
 let state=loadState();
 let current=null;
 let staff=sessionStorage.getItem(STAFF_KEY)||'';
+function staffRole(){return STAFF_ACCOUNTS[staff]?.role||'ADMIN'}
+function rolePerm(){return ROLE_PERMISSIONS[staffRole()]||ROLE_PERMISSIONS.ADMIN}
+function can(action){return !!rolePerm()[action]}
+function canClaim(kind){return (rolePerm().claims||[]).includes(kind)}
 let scanStream=null,scanTimer=null;
 
 function loadState(){try{const s=JSON.parse(localStorage.getItem(APP_KEY));return s&&Array.isArray(s.attendees)?s:newState()}catch{return newState()}}
@@ -105,24 +127,55 @@ function nowText(iso){return new Date(iso).toLocaleString()}
 function cleanCode(v){return String(v||'').trim().toUpperCase().replace(/^PDW2027:/,'')}
 function entitlements(a){return a.type==='PATIENT'?['SNACK','LUNCH','RAFFLE']:['SNACK','LUNCH']}
 function isMasterlistFinalized(){return state?.masterlist?.status==='FINAL'}
-function qrReleaseAllowed(){return isMasterlistFinalized()}
+function qrReleaseAllowed(){return isMasterlistFinalized()&&can('qrRelease')}
 function byId(id){return state.attendees.find(a=>a.id===cleanCode(id))}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
+function applyRoleAccess(){
+  if(!staff)return;
+  const permitted=new Set(rolePerm().views||[]);
+  $('.tab').forEach(tab=>{
+    const allowed=permitted.has(tab.dataset.view);
+    tab.classList.toggle('role-hidden',!allowed);
+    tab.disabled=!allowed;
+  });
+  const visibleTabs=$('.tab').filter(t=>!t.classList.contains('role-hidden'));
+  const active=$('.tab.active');
+  if(!active||active.classList.contains('role-hidden')){
+    $('.tab').forEach(t=>t.classList.remove('active'));
+    visibleTabs[0]?.classList.add('active');
+    $('.view-panel').forEach(x=>x.classList.add('hidden'));
+    if(visibleTabs[0])$('#'+visibleTabs[0].dataset.view+'Panel')?.classList.remove('hidden');
+  }
+  if($('#addAttendeeBtn'))$('#addAttendeeBtn').classList.toggle('hidden',!can('addAttendee'));
+  if($('#showPassBtn'))$('#showPassBtn').classList.toggle('hidden',!can('qrRelease'));
+  if($('#drawRaffleBtn'))$('#drawRaffleBtn').classList.toggle('hidden',!can('raffleDraw'));
+  if($('#applyDraftBtn'))$('#applyDraftBtn').classList.toggle('hidden',!can('masterlist'));
+  if($('#reviewIssuesBtn'))$('#reviewIssuesBtn').classList.toggle('hidden',!can('masterlist'));
+  if($('#finalizeMasterlistBtn'))$('#finalizeMasterlistBtn').classList.toggle('hidden',!can('masterlist'));
+  if($('#reopenDraftBtn')&&!can('masterlist'))$('#reopenDraftBtn').classList.add('hidden');
+  if($('#importCsvLabel'))$('#importCsvLabel').classList.toggle('hidden',!can('masterlist'));
+  if($('#downloadAllQrBtn'))$('#downloadAllQrBtn').classList.toggle('hidden',!(can('masterlist')||can('qrRelease')));
+}
 function showApp(){
   $('#loginView').classList.toggle('hidden',!!staff);
   $('#mainView').classList.toggle('hidden',!staff);
-  if(staff){$('#staffBadge').textContent=`Staff: ${staff}`;renderAll()}
+  if(staff){
+    const acct=STAFF_ACCOUNTS[staff]||{role:'ADMIN',label:staff};
+    $('#staffBadge').textContent=acct.label+' · '+acct.role.replace('_',' ');
+    applyRoleAccess();
+    renderAll();
+  }
 }
 
-$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const u=$('#username').value.trim();const p=$('#password').value;if(['Gen','Bot','Kim'].includes(u)&&p===DEMO_PASS){staff=u;sessionStorage.setItem(STAFF_KEY,staff);$('#loginError').textContent='';showApp()}else $('#loginError').textContent='Invalid demo account.'});
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const u=$('#username').value.trim();const p=$('#password').value;if(STAFF_ACCOUNTS[u]&&p===DEMO_PASS){staff=u;sessionStorage.setItem(STAFF_KEY,staff);$('#loginError').textContent='';showApp()}else $('#loginError').textContent='Invalid staff account.'});
 $$('[data-demo]').forEach(b=>b.addEventListener('click',()=>{$('#username').value=b.dataset.demo;$('#password').value=DEMO_PASS;$('#loginForm').requestSubmit()}));
 $('#logoutBtn').addEventListener('click',()=>{staff='';sessionStorage.removeItem(STAFF_KEY);current=null;showApp()});
 
 function updateNetwork(){const online=navigator.onLine;$('#networkPill').textContent=online?'● Online — offline copy ready after install':'● Offline mode';$('#networkPill').style.background=online?'#edf4ef':'#f6ead0'}
 addEventListener('online',updateNetwork);addEventListener('offline',updateNetwork);updateNetwork();
 
-$$('.tab').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.view;$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.view-panel').forEach(x=>x.classList.add('hidden'));$('#'+v+'Panel').classList.remove('hidden');if(v==='raffle')renderRaffle();if(v==='masterlist')renderMasterlist();if(v==='backup')$('#backupMessage').textContent=''}));
+$('.tab').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.view;if(!(rolePerm().views||[]).includes(v))return;$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.view-panel').forEach(x=>x.classList.add('hidden'));$('#'+v+'Panel').classList.remove('hidden');if(v==='raffle')renderRaffle();if(v==='masterlist')renderMasterlist();if(v==='backup')$('#backupMessage').textContent=''}));
 
 function selectAttendee(a){
   if(a?.draftStatus==='REMOVED'||a?.inactive){alert('This attendee is inactive in the current draft masterlist.');return}
