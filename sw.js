@@ -1,5 +1,5 @@
-const CACHE='pdw2027-digital-stub-v14';
-const LOCAL=['./','./index.html','./styles.css?v=14','./app.js?v=14','./manifest.json','./icon.svg'];
+const CACHE='pdw2027-digital-stub-v15';
+const LOCAL=['./','./index.html','./styles.css?v=15','./app.js?v=15','./manifest.json','./icon.svg'];
 const QR_LIB='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
 
 self.addEventListener('install',e=>{
