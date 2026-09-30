@@ -857,6 +857,15 @@
 }
 
 
+/* =========================================================
+   APPROVED MASTER LOGIN DESIGN — LOCKED
+   Version: v17
+   Do not change login sizing, proportions, spacing, typography,
+   colors, button layout, admin layout, or staff-role layout
+   unless the project owner explicitly requests an unlock/redesign.
+   New features must adapt around this locked design.
+   ========================================================= */
+
 /* ===== LOGIN CARD READABILITY v17 ===== */
 .phone-ui .login-panel-simple{
   padding:20px!important;
