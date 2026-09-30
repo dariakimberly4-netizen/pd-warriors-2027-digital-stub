@@ -237,7 +237,11 @@ $('#logoutBtn').addEventListener('click',()=>{staff='';sessionStorage.removeItem
 function updateNetwork(){const online=navigator.onLine;$('#networkPill').textContent=online?'● Online — offline copy ready after install':'● Offline mode';$('#networkPill').style.background=online?'#edf4ef':'#f6ead0'}
 addEventListener('online',updateNetwork);addEventListener('offline',updateNetwork);updateNetwork();
 
-$('.tab').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.view;if(!(rolePerm().views||[]).includes(v))return;$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.view-panel').forEach(x=>x.classList.add('hidden'));$('#'+v+'Panel').classList.remove('hidden');if(v==='raffle')renderRaffle();if(v==='masterlist')renderMasterlist();if(v==='backup')$('#backupMessage').textContent=''}));
+$('.tabs')?.addEventListener('click',e=>{
+  const b=e.target.closest('.tab');
+  if(!b)return;
+  activateView(b.dataset.view);
+});
 
 function selectAttendee(a){
   if(a?.draftStatus==='REMOVED'||a?.inactive){alert('This attendee is inactive in the current draft masterlist.');return}
@@ -282,7 +286,7 @@ function openAttendeeRecord(a){
   $('#newName').value=a.name||'';
   $('#newType').value=a.type||'PATIENT';
   $('#newLinkedPatient').value=a.linkedPatient||'';
-  markFeatureSeen('attendee-card-open');
+  markFeatureSeen('attendee-card-open-v24');
   refreshNewFeatureHighlights();
   $('#attendeeDialog').showModal();
 }
@@ -312,7 +316,7 @@ function renderAttendeeList(){
         d.type='button';
         d.className='attendee-row attendee-row-clickable attendee-card-button';
         d.dataset.attendeeId=a.id;
-        d.dataset.newFeature='attendee-card-open-v23';
+        d.dataset.newFeature='attendee-card-open-v24';
         d.setAttribute('aria-label','Open attendee record for '+a.name);
         d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div>`;
         d.addEventListener('click',()=>openAttendeeRecord(a));
@@ -493,7 +497,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=23',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=24',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
