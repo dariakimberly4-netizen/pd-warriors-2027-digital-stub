@@ -855,3 +855,97 @@
   .phone-ui .role-login-grid button{min-height:38px!important}
   .phone-ui .role-login-grid button strong{font-size:14px!important}
 }
+
+
+/* ===== LOGIN CARD READABILITY v17 ===== */
+.phone-ui .login-panel-simple{
+  padding:20px!important;
+}
+.phone-ui .login-field input{
+  font-size:20px!important;
+  font-weight:650!important;
+  color:#173f32!important;
+  height:62px!important;
+  min-height:62px!important;
+}
+.phone-ui .login-field input::placeholder{
+  color:#6c736e!important;
+  opacity:1!important;
+  font-size:20px!important;
+}
+.phone-ui .field-icon{
+  transform:translateY(-50%) scale(1.05)!important;
+}
+.phone-ui .login-submit{
+  height:64px!important;
+  min-height:64px!important;
+  font-size:21px!important;
+  font-weight:900!important;
+  letter-spacing:.035em!important;
+}
+.phone-ui .demo-divider strong{
+  font-size:14px!important;
+  font-weight:900!important;
+  letter-spacing:.10em!important;
+  color:#295646!important;
+}
+.phone-ui .simple-demo-logins button{
+  height:58px!important;
+  min-height:58px!important;
+  font-size:19px!important;
+  font-weight:800!important;
+}
+.phone-ui .simple-demo-logins button span{
+  font-size:19px!important;
+  font-weight:850!important;
+  color:#173f32!important;
+}
+.phone-ui .simple-demo-logins button b{
+  font-size:25px!important;
+}
+.phone-ui .admin-dot{
+  width:23px!important;
+  height:23px!important;
+}
+.phone-ui .admin-dot:after{
+  width:30px!important;
+  height:14px!important;
+  top:21px!important;
+}
+.phone-ui .role-login-grid button{
+  min-height:56px!important;
+  padding:9px 13px!important;
+}
+.phone-ui .role-login-grid button strong{
+  font-size:18px!important;
+  font-weight:850!important;
+  color:#173f32!important;
+}
+.phone-ui .role-icon{
+  width:32px!important;
+  height:32px!important;
+  font-size:13px!important;
+  font-weight:950!important;
+}
+.phone-ui .role-divider strong{
+  font-size:14px!important;
+  font-weight:900!important;
+}
+.phone-ui .role-login-grid{
+  gap:8px!important;
+}
+
+/* Keep the card readable, not tiny, on shorter phones. */
+@media (max-height:720px){
+  .phone-ui .login-panel-simple{padding:9px!important}
+  .phone-ui .login-field input,
+  .phone-ui .login-field input::placeholder{font-size:16px!important}
+  .phone-ui .login-field input{height:45px!important;min-height:45px!important}
+  .phone-ui .login-submit{height:47px!important;min-height:47px!important;font-size:17px!important}
+  .phone-ui .demo-divider strong,.phone-ui .role-divider strong{font-size:11px!important}
+  .phone-ui .simple-demo-logins button{height:40px!important;min-height:40px!important}
+  .phone-ui .simple-demo-logins button span{font-size:15px!important}
+  .phone-ui .role-login-grid button{min-height:39px!important}
+  .phone-ui .role-login-grid button strong{font-size:15px!important}
+  .phone-ui .role-icon{width:24px!important;height:24px!important;font-size:10px!important}
+}
