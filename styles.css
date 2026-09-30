@@ -62,166 +62,137 @@
 }
 
 
-/* ===== MOBILE FULL-SCREEN FIT — NO ZOOM REQUIRED ===== */
+
+/* ===== MOBILE FULL-SCREEN FIT v5 ===== */
 @media (max-width:800px){
-  html,body{min-height:100%;overflow-x:hidden}
-  body{background:#fffdf8}
+  html,body,#app{width:100%;height:100%;min-height:100%;overflow:hidden!important}
+  body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .login-simple{
-    width:100%;
-    height:100svh;
-    min-height:100svh;
-    max-height:100svh;
-    overflow:hidden;
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100dvh;
+    min-height:0;
+    max-height:none;
+    overflow:hidden!important;
+    padding:0!important;
   }
   .login-shell{
-    width:100%;
-    height:100svh;
+    --fit-scale:1;
+    position:absolute;
+    top:0;
+    left:50%;
+    width:min(430px,100vw);
+    height:auto;
     min-height:0;
-    padding:max(8px,env(safe-area-inset-top)) 14px max(54px,env(safe-area-inset-bottom));
-    display:grid;
-    grid-template-rows:auto 1fr;
-    align-items:start;
-    gap:6px;
-    overflow:hidden;
+    padding:8px 12px 48px;
+    margin:0;
+    display:block;
+    transform:translateX(-50%) scale(var(--fit-scale));
+    transform-origin:top center;
+    overflow:visible;
   }
-  .login-brand-simple{
-    padding:2px 6px 4px;
-  }
-  .event-title{
-    margin-top:0;
-    line-height:.86;
-  }
+  .login-brand-simple{padding:2px 4px 6px}
+  .event-title{margin:0;line-height:.84}
   .event-title span{
-    font-size:clamp(2rem,9vw,3rem);
+    font-size:clamp(1.72rem,8.1vw,2.4rem);
+    letter-spacing:-.035em;
   }
   .event-title strong{
-    font-size:clamp(2.65rem,12vw,4rem);
-    margin-top:1px;
+    font-size:clamp(2.25rem,10.8vw,3.15rem);
+    margin-top:0;
   }
   .event-rule{
-    width:min(390px,82%);
-    margin:6px auto 4px;
-    gap:8px;
+    width:min(320px,78%);
+    margin:5px auto 3px;
+    gap:7px;
   }
+  .event-rule span{height:1px}
+  .event-rule i{width:7px;height:7px}
   .system-name{
-    font-size:clamp(.62rem,2.5vw,.78rem);
-    letter-spacing:.14em;
-    line-height:1.2;
+    font-size:clamp(.54rem,2.3vw,.68rem);
+    letter-spacing:.10em;
+    line-height:1.1;
   }
   .login-brand-simple .offline-pill{
-    margin-top:6px;
-    padding:5px 9px;
-    font-size:.68rem;
+    display:none!important;
   }
   .login-panel-simple{
     width:100%;
-    align-self:start;
-    padding:12px;
-    border-radius:20px;
-    box-shadow:0 10px 24px rgba(51,59,45,.07);
+    margin:0;
+    padding:10px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(51,59,45,.06);
   }
-  .login-field{
-    margin-bottom:8px!important;
-  }
+  .login-field{margin:0 0 6px!important}
   .login-field input{
-    height:50px;
-    padding:0 48px 0 50px;
-    border-radius:14px;
-    font-size:1rem;
+    height:45px;
+    min-height:45px;
+    padding:0 44px 0 46px;
+    border-radius:13px;
+    font-size:.95rem;
   }
   .field-icon{
-    left:18px;
-    transform:translateY(-50%) scale(.86);
+    left:16px;
+    transform:translateY(-50%) scale(.78);
   }
   .login-submit{
-    min-height:52px;
-    height:52px;
-    border-radius:14px;
-    font-size:1.08rem;
+    height:47px;
+    min-height:47px;
+    border-radius:13px;
+    font-size:1rem;
   }
   .login-submit b{
-    right:13px;
-    width:32px;
-    height:32px;
-    font-size:1.7rem;
-  }
-  .login-panel-simple .error{
-    min-height:8px;
-    margin:3px 0 0;
-    font-size:.8rem;
-  }
-  .demo-divider{
-    gap:8px;
-    margin:5px 0 8px;
-  }
-  .demo-divider strong{
-    font-size:.64rem;
-    letter-spacing:.08em;
-  }
-  .simple-demo-logins{
-    gap:6px;
-  }
-  .simple-demo-logins button{
-    min-height:46px;
-    height:46px;
-    padding:7px 13px;
-    border-radius:13px!important;
-    grid-template-columns:24px 1fr auto;
-    gap:10px;
-    font-size:.94rem;
-  }
-  .admin-dot{
-    width:18px;
-    height:18px;
-  }
-  .admin-dot:after{
-    width:23px;
-    height:11px;
-    left:-2px;
-    top:16px;
-  }
-  .simple-demo-logins button b{
+    right:11px;
+    width:28px;
+    height:28px;
     font-size:1.5rem;
   }
+  .login-panel-simple .error{
+    min-height:5px;
+    margin:2px 0 0;
+    font-size:.72rem;
+    line-height:1.05;
+  }
+  .demo-divider{
+    gap:6px;
+    margin:3px 0 5px;
+  }
+  .demo-divider strong{
+    font-size:.56rem;
+    letter-spacing:.06em;
+  }
+  .simple-demo-logins{gap:4px}
+  .simple-demo-logins button{
+    height:41px;
+    min-height:41px;
+    padding:5px 11px;
+    border-radius:12px!important;
+    grid-template-columns:21px 1fr auto;
+    gap:8px;
+    font-size:.87rem;
+  }
+  .admin-dot{width:16px;height:16px}
+  .admin-dot:after{
+    width:21px;
+    height:10px;
+    left:-2px;
+    top:15px;
+  }
+  .simple-demo-logins button b{font-size:1.35rem}
   .login-wave{
-    height:82px;
-    bottom:-42px;
+    height:54px;
+    bottom:-31px;
   }
 }
 
-@media (max-width:420px) and (max-height:760px){
-  .login-shell{
-    padding-top:max(5px,env(safe-area-inset-top));
-    padding-left:10px;
-    padding-right:10px;
-    padding-bottom:max(42px,env(safe-area-inset-bottom));
-    gap:3px;
-  }
-  .login-brand-simple{padding:0 4px 2px}
-  .event-title span{font-size:1.9rem}
-  .event-title strong{font-size:2.55rem}
-  .event-rule{margin:4px auto 3px}
-  .system-name{font-size:.58rem;letter-spacing:.11em}
-  .login-brand-simple .offline-pill{margin-top:4px;padding:4px 8px;font-size:.62rem}
-  .login-panel-simple{padding:9px 10px;border-radius:18px}
-  .login-field{margin-bottom:6px!important}
-  .login-field input{height:46px;font-size:.96rem}
-  .login-submit{height:48px;min-height:48px;font-size:1rem}
-  .login-submit b{width:29px;height:29px}
-  .demo-divider{margin:3px 0 6px}
-  .demo-divider strong{font-size:.59rem}
-  .simple-demo-logins{gap:5px}
-  .simple-demo-logins button{height:44px;min-height:44px;font-size:.9rem}
-  .login-wave{height:64px;bottom:-36px}
-}
-
-@media (max-width:380px) and (max-height:680px){
-  .event-title span{font-size:1.72rem}
-  .event-title strong{font-size:2.28rem}
-  .system-name{font-size:.54rem}
-  .login-brand-simple .offline-pill{display:none}
-  .login-panel-simple{padding:8px 9px}
-  .login-field input{height:44px}
-  .login-submit{height:46px;min-height:46px}
-  .simple-demo-logins button{height:44px;min-height:44px}
+@media (max-width:390px){
+  .login-shell{padding-left:9px;padding-right:9px}
+  .event-title span{font-size:1.62rem}
+  .event-title strong{font-size:2.12rem}
+  .system-name{font-size:.51rem}
+  .login-panel-simple{padding:8px}
+  .login-field input{height:43px;min-height:43px}
+  .login-submit{height:45px;min-height:45px}
+  .simple-demo-logins button{height:39px;min-height:39px}
 }
