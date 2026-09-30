@@ -323,3 +323,144 @@
   .review-row{grid-template-columns:1fr}
   .review-row button{width:100%}
 }
+
+
+/* ===== MOBILE LOGIN SIZE FIX v12 — LARGE BUT FULL-SCREEN ===== */
+@media (max-width:800px){
+  .login-simple{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100dvh;
+    overflow:hidden!important;
+  }
+  .login-shell{
+    --fit-scale:1!important;
+    position:relative!important;
+    top:auto!important;
+    left:auto!important;
+    width:min(520px,94vw)!important;
+    height:100dvh!important;
+    min-height:0!important;
+    margin:0 auto!important;
+    padding:max(12px,env(safe-area-inset-top)) 0 max(18px,env(safe-area-inset-bottom))!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    gap:10px!important;
+    transform:none!important;
+    overflow:hidden!important;
+  }
+  .login-brand-simple{
+    padding:0 8px 8px!important;
+  }
+  .event-title span{
+    font-size:clamp(2.35rem,10vw,3.2rem)!important;
+    line-height:.9!important;
+  }
+  .event-title strong{
+    font-size:clamp(3rem,13vw,4rem)!important;
+    line-height:.9!important;
+    margin-top:2px!important;
+  }
+  .event-rule{
+    width:min(390px,84%)!important;
+    margin:8px auto 5px!important;
+  }
+  .system-name{
+    font-size:clamp(.66rem,2.75vw,.82rem)!important;
+    letter-spacing:.13em!important;
+    line-height:1.2!important;
+  }
+  .login-brand-simple .offline-pill{
+    display:none!important;
+  }
+  .login-panel-simple{
+    width:100%!important;
+    margin:0!important;
+    padding:15px!important;
+    border-radius:24px!important;
+  }
+  .login-field{
+    margin-bottom:9px!important;
+  }
+  .login-field input{
+    height:54px!important;
+    min-height:54px!important;
+    border-radius:16px!important;
+    font-size:1rem!important;
+    padding-left:54px!important;
+  }
+  .field-icon{
+    left:18px!important;
+    transform:translateY(-50%) scale(.9)!important;
+  }
+  .login-submit{
+    height:56px!important;
+    min-height:56px!important;
+    border-radius:16px!important;
+    font-size:1.08rem!important;
+  }
+  .login-submit b{
+    width:34px!important;
+    height:34px!important;
+    right:14px!important;
+    font-size:1.75rem!important;
+  }
+  .login-panel-simple .error{
+    min-height:8px!important;
+    margin:3px 0!important;
+  }
+  .demo-divider{
+    margin:7px 0 10px!important;
+    gap:10px!important;
+  }
+  .demo-divider strong{
+    font-size:.66rem!important;
+    letter-spacing:.09em!important;
+  }
+  .simple-demo-logins{
+    gap:7px!important;
+  }
+  .simple-demo-logins button{
+    height:48px!important;
+    min-height:48px!important;
+    border-radius:14px!important;
+    padding:7px 14px!important;
+    font-size:.94rem!important;
+    grid-template-columns:25px 1fr auto!important;
+  }
+  .admin-dot{
+    width:19px!important;
+    height:19px!important;
+  }
+  .admin-dot:after{
+    width:25px!important;
+    height:12px!important;
+    left:-3px!important;
+    top:18px!important;
+  }
+  .login-wave{
+    height:76px!important;
+    bottom:-43px!important;
+  }
+}
+@media (max-width:420px) and (max-height:720px){
+  .login-shell{
+    width:min(500px,92vw)!important;
+    gap:6px!important;
+    padding-top:8px!important;
+    padding-bottom:10px!important;
+  }
+  .login-brand-simple{padding-bottom:4px!important}
+  .event-title span{font-size:2.05rem!important}
+  .event-title strong{font-size:2.7rem!important}
+  .event-rule{margin:5px auto 3px!important}
+  .system-name{font-size:.59rem!important}
+  .login-panel-simple{padding:11px!important;border-radius:20px!important}
+  .login-field input{height:48px!important;min-height:48px!important}
+  .login-submit{height:50px!important;min-height:50px!important}
+  .demo-divider{margin:4px 0 6px!important}
+  .simple-demo-logins{gap:5px!important}
+  .simple-demo-logins button{height:43px!important;min-height:43px!important}
+}
