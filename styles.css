@@ -1109,3 +1109,99 @@
     font-size:max(15px,var(--p-small,11px))!important;
   }
 }
+
+
+/* ===== ATTENDEE READABILITY BOOST v21 =====
+   Logged-in screens only. Locked v17 login is untouched. */
+.phone-ui #mainView{
+  font-size:max(18px,var(--p-label,16px))!important;
+}
+.phone-ui #mainView .app-header h1{
+  font-size:max(30px,calc(var(--p-label,16px) * 1.9))!important;
+  font-weight:950!important;
+}
+.phone-ui #mainView .app-header .eyebrow{
+  font-size:max(13px,var(--p-small,11px))!important;
+  font-weight:900!important;
+}
+.phone-ui #mainView .header-actions .ghost{
+  font-size:max(14px,var(--p-small,11px))!important;
+  min-height:48px!important;
+}
+.phone-ui #mainView .staff-badge{
+  font-size:max(14px,var(--p-small,11px))!important;
+  min-height:48px!important;
+}
+.phone-ui #mainView .tab{
+  min-height:58px!important;
+  font-size:max(18px,var(--p-label,16px))!important;
+}
+.phone-ui #mainView .panel{
+  padding:max(22px,calc(var(--p-panel-pad,16px) * 1.2))!important;
+}
+.phone-ui #mainView .section-title-row h2,
+.phone-ui #mainView .panel h2{
+  font-size:max(26px,calc(var(--p-label,16px) * 1.6))!important;
+  font-weight:950!important;
+}
+.phone-ui #mainView .section-title-row .muted,
+.phone-ui #mainView .panel > .muted{
+  font-size:max(16px,var(--p-small,11px))!important;
+  line-height:1.5!important;
+}
+.phone-ui #mainView #addAttendeeBtn{
+  min-height:54px!important;
+  font-size:max(16px,var(--p-small,11px))!important;
+  font-weight:900!important;
+}
+.phone-ui #mainView .full-search,
+.phone-ui #mainView input{
+  min-height:62px!important;
+  font-size:max(18px,var(--p-label,16px))!important;
+  font-weight:650!important;
+}
+.phone-ui #mainView .full-search::placeholder,
+.phone-ui #mainView input::placeholder{
+  font-size:max(18px,var(--p-label,16px))!important;
+}
+.phone-ui #attendeesPanel .attendee-list{
+  gap:14px!important;
+}
+.phone-ui #attendeesPanel .attendee-row{
+  min-height:92px!important;
+  padding:18px 20px!important;
+  border-radius:18px!important;
+  border-width:2px!important;
+}
+.phone-ui #attendeesPanel .attendee-row strong{
+  font-size:max(21px,calc(var(--p-label,16px) * 1.28))!important;
+  line-height:1.28!important;
+  font-weight:950!important;
+  letter-spacing:.005em!important;
+  margin-bottom:7px!important;
+}
+.phone-ui #attendeesPanel .attendee-row small{
+  font-size:max(16px,calc(var(--p-small,11px) * 1.2))!important;
+  line-height:1.55!important;
+  font-weight:750!important;
+  color:#4e5b55!important;
+}
+.phone-ui #attendeesPanel .row-actions button{
+  min-height:52px!important;
+  font-size:max(16px,var(--p-small,11px))!important;
+  font-weight:850!important;
+}
+
+/* Keep the attendee list readable even in browsers using a wide desktop-like viewport. */
+@media (pointer:coarse){
+  #mainView .app-header h1{font-size:32px!important}
+  #mainView .app-header .eyebrow{font-size:14px!important}
+  #mainView .tab{font-size:19px!important;min-height:60px!important}
+  #attendeesPanel .panel h2{font-size:28px!important}
+  #attendeesPanel .muted{font-size:17px!important}
+  #attendeeSearch{font-size:19px!important;min-height:64px!important}
+  #attendeeSearch::placeholder{font-size:19px!important}
+  #attendeesPanel .attendee-row strong{font-size:22px!important}
+  #attendeesPanel .attendee-row small{font-size:17px!important}
+  #addAttendeeBtn{font-size:17px!important;min-height:56px!important}
+}
