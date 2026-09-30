@@ -8,7 +8,7 @@
   <title>GET TOGETHER 2027 — Digital Stub</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body>
   <main id="app">
@@ -118,7 +118,7 @@
         <div class="panel">
           <div class="section-title-row">
             <div>
-              <p class="type-pill draft-pill">DRAFT — NOT FINAL</p>
+              <p id="masterlistStatusPill" class="type-pill draft-pill">DRAFT — NOT FINAL</p>
               <h2>Draft Masterlist</h2>
               <p class="muted">Current snapshot from your Google Sheet — Sheet1. You can replace it with an updated CSV later without rebuilding the system.</p>
             </div>
@@ -132,9 +132,12 @@
           </div>
 
           <div class="action-grid masterlist-actions">
-            <button id="applyDraftBtn" class="primary xl">✓ APPLY CURRENT DRAFT</button>
+            <button id="reviewIssuesBtn" class="secondary xl" data-new-feature="needs-review">⚠ REVIEW ISSUES</button>
+            <button id="finalizeMasterlistBtn" class="primary xl" data-new-feature="finalize-masterlist">✓ FINALIZE MASTERLIST</button>
+            <button id="reopenDraftBtn" class="secondary xl hidden">↶ REOPEN AS DRAFT</button>
+            <button id="applyDraftBtn" class="secondary xl">APPLY CURRENT DRAFT</button>
             <button id="downloadAllQrBtn" class="secondary xl" data-new-feature="download-all-qr" disabled>🔒 DOWNLOAD ALL QR PASSES</button>
-            <label class="file-button secondary xl">⬆ IMPORT UPDATED CSV
+            <label id="importCsvLabel" class="file-button secondary xl">⬆ IMPORT UPDATED CSV
               <input id="masterlistCsvInput" type="file" accept=".csv,text/csv" hidden />
             </label>
           </div>
@@ -151,7 +154,14 @@
             </ul>
           </div>
 
-          <input id="masterlistSearch" class="full-search" placeholder="Search current draft…" />
+          <div id="needsReviewSection" class="panel inset review-section">
+            <div class="section-title-row">
+              <div><h3>Needs Review</h3><p class="muted">Resolve questionable patient/companion records before finalizing.</p></div>
+              <span id="reviewCountBadge" class="review-count">0</span>
+            </div>
+            <div id="needsReviewList" class="attendee-list"></div>
+          </div>
+          <input id="masterlistSearch" class="full-search" placeholder="Search current masterlist…" />
           <div id="masterlistPreview" class="attendee-list"></div>
         </div>
       </section>
@@ -233,6 +243,28 @@
     </div>
   </dialog>
 
+
+  <dialog id="familyReviewDialog" class="modal">
+    <form id="familyReviewForm" class="modal-card">
+      <div class="section-title-row">
+        <div><h2>Review Family Record</h2><p id="reviewFamilyId" class="muted"></p></div>
+        <button id="closeFamilyReview" type="button" class="ghost">✕</button>
+      </div>
+      <label>Patient / Registrant Name
+        <input id="reviewPatientName" />
+      </label>
+      <label class="review-check">
+        <input id="reviewPatientPresent" type="checkbox" />
+        <span>This person is a Patient / PD Warrior attending the event</span>
+      </label>
+      <label>Companion Names — one per line
+        <textarea id="reviewCompanionNames" rows="6" placeholder="Companion 1&#10;Companion 2"></textarea>
+      </label>
+      <p class="muted">Each companion will keep an existing QR ID when matched. New companions receive a new unique QR.</p>
+      <button type="submit" class="primary xl">SAVE &amp; MARK REVIEWED</button>
+    </form>
+  </dialog>
+
   <dialog id="attendeeDialog" class="modal">
     <form id="attendeeForm" class="modal-card">
       <div class="section-title-row"><h2>Add Attendee</h2><button id="closeAttendeeDialog" type="button" class="ghost">✕</button></div>
@@ -244,6 +276,6 @@
   </dialog>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
