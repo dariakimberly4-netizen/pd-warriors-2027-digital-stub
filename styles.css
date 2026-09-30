@@ -221,3 +221,6 @@
   .masterlist-actions{grid-template-columns:1fr}
   .pass-action-grid{grid-template-columns:1fr}
 }
+
+/* ===== DRAFT QR RELEASE LOCK ===== */
+#sharePassBtn:disabled,#downloadPassBtn:disabled,#downloadAllQrBtn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
