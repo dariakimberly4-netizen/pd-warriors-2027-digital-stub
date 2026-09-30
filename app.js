@@ -186,7 +186,7 @@ async function saveQrPng(attendee){
   document.body.appendChild(a);a.click();a.remove();
 }
 
-function showPass(a){current=a;const allowed=qrReleaseAllowed();$('#sharePassBtn').disabled=!allowed;$('#downloadPassBtn').disabled=!allowed;$('#sharePassBtn').textContent=allowed?'↗ SHARE QR':'🔒 SHARE QR';$('#downloadPassBtn').textContent=allowed?'⬇ SAVE QR AS PNG':'🔒 SAVE QR AS PNG';$('#passActionMessage').textContent=allowed?'':'QR release is locked while the masterlist is DRAFT.';$('#passType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';$('#passName').textContent=a.name;$('#passId').textContent=a.id;$('#passEntitlements').innerHTML=entitlements(a).map(x=>`<span>✓ ${x}</span>`).join('');const q=$('#qrBox');q.innerHTML='';new QRCode(q,{text:'PDW2027:'+a.id,width:280,height:280,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('#passDialog').showModal()}
+function showPass(a){current=a;const allowed=qrReleaseAllowed();$('#sharePassBtn').disabled=!allowed;$('#downloadPassBtn').disabled=!allowed;$('#sharePassBtn').textContent=allowed?'↗ SHARE QR':'🔒 SHARE QR';$('#downloadPassBtn').textContent=allowed?'⬇ SAVE QR AS PNG':'🔒 SAVE QR AS PNG';refreshNewFeatureHighlights();$('#passActionMessage').textContent=allowed?'':'QR release is locked while the masterlist is DRAFT.';$('#passType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';$('#passName').textContent=a.name;$('#passId').textContent=a.id;$('#passEntitlements').innerHTML=entitlements(a).map(x=>`<span>✓ ${x}</span>`).join('');const q=$('#qrBox');q.innerHTML='';new QRCode(q,{text:'PDW2027:'+a.id,width:280,height:280,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('#passDialog').showModal()}
 $('#showPassBtn').onclick=()=>current&&showPass(current);$('#closePassBtn').onclick=()=>$('#passDialog').close();
 $('#downloadPassBtn').onclick=async()=>{
   if(!current)return;
@@ -248,7 +248,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=9',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=10',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
@@ -275,7 +275,7 @@ function summarizeDraft(list){
 }
 function renderMasterlist(){
   const draft=sampleAttendees;
-  const qrBtn=$('#downloadAllQrBtn');if(qrBtn){const final=isMasterlistFinalized();qrBtn.disabled=!final;qrBtn.textContent=final?'⬇ DOWNLOAD ALL QR PASSES':'🔒 DOWNLOAD ALL QR PASSES'}
+  const qrBtn=$('#downloadAllQrBtn');if(qrBtn){const final=isMasterlistFinalized();qrBtn.disabled=!final;qrBtn.textContent=final?'⬇ DOWNLOAD ALL QR PASSES':'🔒 DOWNLOAD ALL QR PASSES';refreshNewFeatureHighlights()}
   const s=summarizeDraft(draft);
   $('#draftPatients').textContent=s.patients;
   $('#draftCompanions').textContent=s.companions;
@@ -444,19 +444,15 @@ function refreshNewFeatureHighlights(){
   document.querySelectorAll('[data-new-feature]').forEach(el=>{
     const key=el.dataset.newFeature;
     const isSeen=seen.has(key);
-    el.classList.toggle('new-feature-highlight',!isSeen);
-    const badge=el.querySelector('.new-feature-badge');
-    if(badge)badge.hidden=isSeen;
+    const usable=!el.disabled && el.getAttribute('aria-disabled')!=='true';
+    el.classList.toggle('new-feature-highlight',usable&&!isSeen);
   });
 }
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-new-feature]');
-  if(!el)return;
-  const key=el.dataset.newFeature;
-  markFeatureSeen(key);
+  if(!el || el.disabled || el.getAttribute('aria-disabled')==='true')return;
+  markFeatureSeen(el.dataset.newFeature);
   el.classList.remove('new-feature-highlight');
-  const badge=el.querySelector('.new-feature-badge');
-  if(badge)badge.hidden=true;
 });
 
 showApp();renderAll();
