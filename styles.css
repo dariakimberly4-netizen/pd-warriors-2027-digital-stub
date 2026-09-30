@@ -464,3 +464,71 @@
   .simple-demo-logins{gap:5px!important}
   .simple-demo-logins button{height:43px!important;min-height:43px!important}
 }
+
+
+/* ===== STAFF ROLE LOGIN v13 ===== */
+.role-divider{margin-top:10px!important}
+.role-login-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  padding:3px;
+  border-radius:16px;
+}
+.role-login-grid button{
+  min-height:44px;
+  border:1.5px solid #d7a63c;
+  border-radius:13px;
+  background:#fffefa;
+  color:#113f33;
+  display:grid;
+  grid-template-columns:30px 1fr;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+}
+.role-login-grid button strong{font-size:.86rem}
+.role-icon{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#0d5a42;
+  color:white;
+  font-size:.68rem;
+  font-weight:950;
+}
+.role-raffle{grid-column:1 / -1}
+@media(max-width:800px){
+  .login-shell{
+    width:min(560px,96vw)!important;
+  }
+  .login-panel-simple{
+    padding:14px!important;
+  }
+  .simple-demo-logins button{
+    height:46px!important;
+    min-height:46px!important;
+  }
+  .role-login-grid button{
+    min-height:43px;
+  }
+}
+@media(max-width:420px) and (max-height:760px){
+  .event-title span{font-size:1.95rem!important}
+  .event-title strong{font-size:2.55rem!important}
+  .system-name{font-size:.56rem!important}
+  .login-panel-simple{padding:9px!important}
+  .login-field input{height:45px!important;min-height:45px!important}
+  .login-submit{height:47px!important;min-height:47px!important}
+  .simple-demo-logins button{height:39px!important;min-height:39px!important}
+  .role-divider{margin:4px 0 5px!important}
+  .role-login-grid{gap:4px}
+  .role-login-grid button{min-height:38px;padding:5px 8px}
+  .role-login-grid button strong{font-size:.79rem}
+  .role-icon{width:23px;height:23px;font-size:.62rem}
+}
