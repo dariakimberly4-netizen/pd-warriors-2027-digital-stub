@@ -1,1 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#174736"/><circle cx="256" cy="256" r="172" fill="#fbf7eb" stroke="#b79b58" stroke-width="18"/><text x="256" y="244" text-anchor="middle" font-family="Arial,sans-serif" font-size="108" font-weight="800" fill="#174736">PDW</text><text x="256" y="312" text-anchor="middle" font-family="Arial,sans-serif" font-size="54" font-weight="700" fill="#174736">2027</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="title desc">
+<title id="title">Parkinson's Disease Warriors Philippines</title>
+<desc id="desc">Circular emblem with a red tulip, green leaves and a human figure.</desc>
+<defs>
+  <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fa82d"/><stop offset=".48" stop-color="#e3aa22"/><stop offset="1" stop-color="#e8321d"/></linearGradient>
+  <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86aa27"/><stop offset="1" stop-color="#176d38"/></linearGradient>
+</defs>
+<rect width="600" height="600" fill="#fff"/>
+<circle cx="300" cy="300" r="270" fill="#fff" stroke="url(#ring)" stroke-width="8"/>
+<circle cx="300" cy="300" r="251" fill="none" stroke="#1c6b38" stroke-width="3" stroke-dasharray="3 9"/>
+<text x="300" y="75" text-anchor="middle" font-family="Georgia,serif" font-size="28" letter-spacing="8" fill="#176136">PARKINSON'S DISEASE</text>
+<path d="M300 105l24 35 44-20-16 52 42 16-48 25 9 46-55-29-55 29 9-46-48-25 42-16-16-52 44 20z" fill="#ee2b1b" opacity=".95"/>
+<path d="M300 158c-37 42-44 78-29 112 8 18 19 35 29 53 10-18 21-35 29-53 15-34 8-70-29-112z" fill="#e52c1c"/>
+<circle cx="254" cy="310" r="22" fill="#65a225"/>
+<path d="M176 270c21 20 37 61 52 112 14 47 47 91 83 118-67-22-119-80-138-153-8-31-8-57 3-77z" fill="url(#leaf)"/>
+<path d="M424 270c-21 20-37 61-52 112-14 47-47 91-83 118 67-22 119-80 138-153 8-31 8-57-3-77z" fill="url(#leaf)"/>
+<path d="M292 327c-21 12-42 38-59 78 22-27 48-45 78-53 30-8 59-25 85-51-43 20-78 28-104 26z" fill="#4f8f24"/>
+<text x="300" y="472" text-anchor="middle" font-family="Georgia,serif" font-size="51" font-weight="700" letter-spacing="7" fill="#e8321d">WARRIORS</text>
+<text x="300" y="515" text-anchor="middle" font-family="Georgia,serif" font-size="27" letter-spacing="10" fill="#176136">PHILIPPINES</text>
+<circle cx="155" cy="495" r="6" fill="#176136"/><circle cx="445" cy="495" r="6" fill="#176136"/>
+<text x="300" y="555" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" letter-spacing="3" fill="#176136">STRENGTH • HOPE • COURAGE • UNITY • HEALING</text>
+</svg>
