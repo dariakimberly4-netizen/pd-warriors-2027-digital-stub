@@ -300,49 +300,59 @@ function renderAttendeeList(){
   const q=($('#attendeeSearch')?.value||'').toLowerCase();
   const box=$('#attendeeList');if(!box)return;box.innerHTML='';
   const role=staffRole();
-  state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))).forEach(a=>{
-    const d=document.createElement('div');d.className='attendee-row';
-    const claims=Object.keys(a.claims||{}).join(', ')||'No claims';
-    const qrBtn=can('qrRelease')?'<button class="secondary pass">QR Pass</button>':'';
-    const openBtn=(rolePerm().views||[]).includes('claim')?'<button class="secondary open">Open</button>':'';
-    d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div><div class="row-actions">${openBtn}${qrBtn}</div>`;
 
-    if(role==='REGISTRATION'||role==='ADMIN'){
-      d.classList.add('attendee-row-clickable');
-      d.tabIndex=0;
-      d.setAttribute('role','button');
-      d.setAttribute('aria-label','Open attendee record for '+a.name);
-      d.dataset.newFeature='attendee-card-open';
-      const openRecord=()=>openAttendeeRecord(a);
-      d.addEventListener('click',e=>{
-        if(e.target.closest('button'))return;
-        openRecord();
-      });
-      d.addEventListener('keydown',e=>{
-        if(e.key==='Enter'||e.key===' '){e.preventDefault();openRecord();}
-      });
-    }else if(role==='QR_RELEASE'){
-      d.classList.add('attendee-row-clickable');
-      d.tabIndex=0;
-      d.setAttribute('role','button');
-      d.setAttribute('aria-label','Open QR pass for '+a.name);
-      const openPass=()=>showPass(a);
-      d.addEventListener('click',e=>{
-        if(e.target.closest('button'))return;
-        openPass();
-      });
-      d.addEventListener('keydown',e=>{
-        if(e.key==='Enter'||e.key===' '){e.preventDefault();openPass();}
-      });
-    }
+  state.attendees
+    .filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q)))
+    .forEach(a=>{
+      const claims=Object.keys(a.claims||{}).join(', ')||'No claims';
 
-    d.querySelector('.open')?.addEventListener('click',()=>{
-      activateView('claim');
-      selectAttendee(a);
+      // Registration gets a true native button for maximum touch reliability.
+      if(role==='REGISTRATION'){
+        const d=document.createElement('button');
+        d.type='button';
+        d.className='attendee-row attendee-row-clickable attendee-card-button';
+        d.dataset.attendeeId=a.id;
+        d.dataset.newFeature='attendee-card-open-v23';
+        d.setAttribute('aria-label','Open attendee record for '+a.name);
+        d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div>`;
+        d.addEventListener('click',()=>openAttendeeRecord(a));
+        box.appendChild(d);
+        return;
+      }
+
+      // QR Release also uses the whole card as a native button.
+      if(role==='QR_RELEASE'){
+        const d=document.createElement('button');
+        d.type='button';
+        d.className='attendee-row attendee-row-clickable attendee-card-button';
+        d.dataset.attendeeId=a.id;
+        d.setAttribute('aria-label','Open QR pass for '+a.name);
+        d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div>`;
+        d.addEventListener('click',()=>showPass(a));
+        box.appendChild(d);
+        return;
+      }
+
+      const d=document.createElement('div');
+      d.className='attendee-row';
+      const qrBtn=can('qrRelease')?'<button type="button" class="secondary pass">QR Pass</button>':'';
+      const openBtn=(rolePerm().views||[]).includes('claim')?'<button type="button" class="secondary open">Open</button>':'';
+      d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div><div class="row-actions">${openBtn}${qrBtn}</div>`;
+
+      if(role==='ADMIN'){
+        d.classList.add('attendee-row-clickable');
+        d.tabIndex=0;
+        d.setAttribute('role','button');
+        d.setAttribute('aria-label','Open attendee record for '+a.name);
+        d.addEventListener('click',e=>{if(!e.target.closest('button'))openAttendeeRecord(a)});
+        d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openAttendeeRecord(a)}});
+      }
+
+      d.querySelector('.open')?.addEventListener('click',()=>{activateView('claim');selectAttendee(a)});
+      d.querySelector('.pass')?.addEventListener('click',()=>showPass(a));
+      box.appendChild(d);
     });
-    d.querySelector('.pass')?.addEventListener('click',()=>showPass(a));
-    box.appendChild(d);
-  });
+
   refreshNewFeatureHighlights();
 }
 $('#attendeeSearch').addEventListener('input',renderAttendeeList);
@@ -483,7 +493,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=22',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=23',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
