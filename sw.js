@@ -1,4 +1,4 @@
-const CACHE='pdw2027-digital-stub-v10';
+const CACHE='pdw2027-digital-stub-v9';
 const LOCAL=['./','./index.html','./styles.css?v=10','./app.js?v=10','./manifest.json','./icon.svg'];
 const QR_LIB='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
 
