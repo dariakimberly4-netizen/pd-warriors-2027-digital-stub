@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#174736" />
+  <meta name="description" content="Offline-first digital QR stub and claiming system for PD Warriors Philippines Get Together 2027." />
+  <title>GET TOGETHER 2027 — Digital Stub</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <section id="loginView" class="screen login-screen">
+      <div class="brand-card">
+        <div class="logo-mark" aria-hidden="true">PDW</div>
+        <p class="eyebrow">PARKINSON'S DISEASE WARRIORS PHILIPPINES</p>
+        <h1>GET TOGETHER 2027</h1>
+        <p class="subtitle">Offline Digital Stub & Claiming System</p>
+        <div class="offline-pill" id="networkPill">● Checking connection…</div>
+      </div>
+
+      <form id="loginForm" class="panel login-panel">
+        <h2>Staff Login</h2>
+        <label>Username<input id="username" autocomplete="username" required /></label>
+        <label>Password<input id="password" type="password" autocomplete="current-password" required /></label>
+        <button class="primary xl" type="submit">LOG IN</button>
+        <div id="loginError" class="error" role="alert"></div>
+        <div class="demo-logins">
+          <p>Demo one-tap accounts</p>
+          <button type="button" data-demo="Gen">Admin 1 · Gen</button>
+          <button type="button" data-demo="Bot">Admin 2 · Bot</button>
+          <button type="button" data-demo="Kim">Admin 3 · Kim</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="mainView" class="screen hidden">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">GET TOGETHER 2027</p>
+          <h1>Digital Stub</h1>
+        </div>
+        <div class="header-actions">
+          <span id="staffBadge" class="staff-badge"></span>
+          <button id="logoutBtn" class="ghost">Logout</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Main navigation">
+        <button class="tab active" data-view="claim">Scan / Claim</button>
+        <button class="tab" data-view="attendees">Attendees</button>
+        <button class="tab" data-view="raffle">Raffle</button>
+        <button class="tab" data-view="backup">Backup</button>
+      </nav>
+
+      <section id="claimPanel" class="view-panel">
+        <div class="panel hero-panel">
+          <h2>Scan QR or Find Attendee</h2>
+          <p>Works offline after the app has been installed/opened once.</p>
+          <div class="action-grid">
+            <button id="scanBtn" class="primary xl">📷 SCAN QR</button>
+            <button id="manualBtn" class="secondary xl">⌨ ENTER CODE</button>
+          </div>
+          <div class="search-row">
+            <input id="quickSearch" placeholder="Search name or attendee ID" autocomplete="off" />
+            <button id="quickSearchBtn" class="secondary">Search</button>
+          </div>
+          <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <div id="attendeeCard" class="panel attendee-card hidden">
+          <div class="attendee-head">
+            <div>
+              <p id="attendeeType" class="type-pill"></p>
+              <h2 id="attendeeName"></h2>
+              <p id="attendeeId" class="muted"></p>
+            </div>
+            <button id="showPassBtn" class="secondary">Show QR Pass</button>
+          </div>
+          <div id="claimButtons" class="claim-grid"></div>
+          <div id="claimMessage" class="claim-message" role="status"></div>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat"><span id="statPresent">0</span><small>Checked In</small></article>
+          <article class="stat"><span id="statSnack">0</span><small>Snacks Claimed</small></article>
+          <article class="stat"><span id="statLunch">0</span><small>Lunch Claimed</small></article>
+          <article class="stat"><span id="statRaffle">0</span><small>Raffle Claimed</small></article>
+        </div>
+      </section>
+
+      <section id="attendeesPanel" class="view-panel hidden">
+        <div class="panel">
+          <div class="section-title-row">
+            <div><h2>Attendee Masterlist</h2><p class="muted">Each person has one unique QR.</p></div>
+            <button id="addAttendeeBtn" class="primary">+ Add Attendee</button>
+          </div>
+          <input id="attendeeSearch" class="full-search" placeholder="Search attendee…" />
+          <div id="attendeeList" class="attendee-list"></div>
+        </div>
+      </section>
+
+      <section id="rafflePanel" class="view-panel hidden">
+        <div class="panel">
+          <h2>Offline Raffle Pool</h2>
+          <p class="muted">Only checked-in Patients / PD Warriors are eligible. Companions are automatically excluded.</p>
+          <div class="raffle-box">
+            <div><strong id="raffleEligibleCount">0</strong><span>Eligible patients</span></div>
+            <button id="drawRaffleBtn" class="primary xl">🎟 DRAW WINNER</button>
+          </div>
+          <div id="raffleWinner" class="winner-card hidden"></div>
+          <div id="rafflePool" class="attendee-list"></div>
+        </div>
+      </section>
+
+      <section id="backupPanel" class="view-panel hidden">
+        <div class="panel">
+          <h2>Offline Backup & Merge</h2>
+          <p>Use this when different stations use separate offline phones. Export each phone, then import files into the Admin phone to merge claims.</p>
+          <div class="backup-grid">
+            <button id="exportJsonBtn" class="primary xl">⬇ Export Backup JSON</button>
+            <button id="exportCsvBtn" class="secondary xl">⬇ Export Claims CSV</button>
+            <label class="file-button secondary xl">⬆ Import / Merge JSON<input id="importJsonInput" type="file" accept="application/json,.json" hidden /></label>
+            <button id="resetDemoBtn" class="danger xl">Reset Demo Data</button>
+          </div>
+          <div id="backupMessage" class="claim-message"></div>
+          <div class="panel inset">
+            <h3>Offline checklist</h3>
+            <ul>
+              <li>Open the site once with internet before the event.</li>
+              <li>Tap “Add to Home Screen” / install the PWA.</li>
+              <li>Open it once after installation, then test in airplane mode.</li>
+              <li>Back up each station device during breaks.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="scanDialog" class="modal">
+    <form method="dialog" class="modal-card">
+      <div class="section-title-row"><h2>Scan Attendee QR</h2><button class="ghost" value="cancel">✕</button></div>
+      <video id="scannerVideo" playsinline muted></video>
+      <p id="scannerStatus" class="muted">Starting camera…</p>
+      <button id="stopScanBtn" class="secondary xl" value="cancel">Close Scanner</button>
+    </form>
+  </dialog>
+
+  <dialog id="passDialog" class="modal">
+    <div class="modal-card pass-card">
+      <button id="closePassBtn" class="ghost close-pass">✕</button>
+      <p class="eyebrow">PARKINSON'S DISEASE WARRIORS PHILIPPINES</p>
+      <h2>GET TOGETHER 2027</h2>
+      <p id="passType" class="type-pill"></p>
+      <h3 id="passName"></h3>
+      <p id="passId" class="muted"></p>
+      <div id="qrBox" class="qr-box"></div>
+      <div id="passEntitlements" class="pass-entitlements"></div>
+      <p class="save-note">Save this pass as a screenshot. The QR works without internet.</p>
+      <button id="downloadPassBtn" class="primary xl">Save QR as PNG</button>
+    </div>
+  </dialog>
+
+  <dialog id="attendeeDialog" class="modal">
+    <form id="attendeeForm" class="modal-card">
+      <div class="section-title-row"><h2>Add Attendee</h2><button id="closeAttendeeDialog" type="button" class="ghost">✕</button></div>
+      <label>Full Name<input id="newName" required /></label>
+      <label>Attendee Type<select id="newType"><option value="PATIENT">Patient / PD Warrior</option><option value="COMPANION">Companion</option></select></label>
+      <label>Linked Patient ID (optional for Companion)<input id="newLinkedPatient" placeholder="PDW-0001" /></label>
+      <button type="submit" class="primary xl">CREATE ATTENDEE & QR</button>
+    </form>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
