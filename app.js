@@ -113,6 +113,11 @@ const sampleAttendees=draftRowsToAttendees(CURRENT_DRAFT_ROWS);
 function newState(){return{version:2,attendees:structuredClone(sampleAttendees),audit:[],raffleWinners:[],masterlist:{status:'DRAFT',source:'Built-in Sheet1 snapshot',importedAt:null},updatedAt:new Date().toISOString()}}
 let state=loadState();
 let current=null;
+const ROLE_UI_BUILD='v19';
+if(sessionStorage.getItem('pdw2027_role_ui_build')!==ROLE_UI_BUILD){
+  sessionStorage.removeItem(STAFF_KEY);
+  sessionStorage.setItem('pdw2027_role_ui_build',ROLE_UI_BUILD);
+}
 let staff=sessionStorage.getItem(STAFF_KEY)||'';
 function staffRole(){return STAFF_ACCOUNTS[staff]?.role||'ADMIN'}
 function rolePerm(){return ROLE_PERMISSIONS[staffRole()]||ROLE_PERMISSIONS.ADMIN}
@@ -131,31 +136,40 @@ function qrReleaseAllowed(){return isMasterlistFinalized()&&can('qrRelease')}
 function byId(id){return state.attendees.find(a=>a.id===cleanCode(id))}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
+const ROLE_VIEW_LABELS={
+  claim:'Scan / Claim',
+  masterlist:'Masterlist',
+  attendees:'Attendees',
+  raffle:'Raffle',
+  backup:'Backup'
+};
+
+function activateView(view){
+  const allowed=(rolePerm().views||[]).includes(view);
+  if(!allowed)return;
+  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===view));
+  $$('.view-panel').forEach(x=>x.classList.add('hidden'));
+  $('#'+view+'Panel')?.classList.remove('hidden');
+  if(view==='raffle')renderRaffle();
+  if(view==='masterlist')renderMasterlist();
+  if(view==='backup')$('#backupMessage').textContent='';
+}
+
+function rebuildRoleMenu(){
+  const nav=$('.tabs');
+  if(!nav)return;
+  const views=rolePerm().views||[];
+  nav.innerHTML=views.map((view,i)=>{
+    const nf=view==='masterlist'?' data-new-feature="masterlist"':'';
+    return '<button class="tab'+(i===0?' active':'')+'" data-view="'+view+'"'+nf+'>'+ROLE_VIEW_LABELS[view]+'</button>';
+  }).join('');
+  activateView(views[0]);
+}
+
 function applyRoleAccess(){
   if(!staff)return;
   const perm=rolePerm();
-  const permitted=new Set(perm.views||[]);
-
-  // Show only modules assigned to this logged-in role.
-  $$('.tab').forEach(tab=>{
-    const allowed=permitted.has(tab.dataset.view);
-    tab.classList.toggle('role-hidden',!allowed);
-    tab.hidden=!allowed;
-    tab.disabled=!allowed;
-    tab.setAttribute('aria-hidden',allowed?'false':'true');
-  });
-
-  const visibleTabs=$$('.tab').filter(t=>!t.hidden&&!t.classList.contains('role-hidden'));
-  const active=$('.tab.active');
-  if(!active||active.hidden||active.classList.contains('role-hidden')){
-    $$('.tab').forEach(t=>t.classList.remove('active'));
-    $$('.view-panel').forEach(x=>x.classList.add('hidden'));
-    const first=visibleTabs[0];
-    if(first){
-      first.classList.add('active');
-      $('#'+first.dataset.view+'Panel')?.classList.remove('hidden');
-    }
-  }
+  rebuildRoleMenu();
 
   // Registration / attendee actions.
   if($('#addAttendeeBtn'))$('#addAttendeeBtn').classList.toggle('hidden',!perm.addAttendee);
@@ -205,7 +219,7 @@ function showApp(){
   $('#mainView').classList.toggle('hidden',!staff);
   if(staff){
     const acct=STAFF_ACCOUNTS[staff]||{role:'ADMIN',label:staff};
-    $('#staffBadge').textContent=acct.label+' · '+acct.role.replace('_',' ');
+    $('#staffBadge').textContent=acct.label+' · '+acct.role.replace('_',' '); const title=$('#mainView h1'); if(title) title.textContent=acct.role==='ADMIN'?'Digital Stub':acct.label;
     applyRoleAccess();
     renderAll();
   }
@@ -371,7 +385,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=18',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=19',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
