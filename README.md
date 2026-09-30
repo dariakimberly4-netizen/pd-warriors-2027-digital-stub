@@ -53,3 +53,16 @@ Future features must be added without redesigning this login unless the project 
 The v21 Attendee Registration screen is the approved master design. Do not change its sizing, proportions, typography, colors, spacing, attendee-card layout, header, navigation, search field, or Add Attendee placement unless the project owner explicitly requests an unlock/redesign.
 
 Functional changes may be added without changing the approved visual design. As of v22, attendee cards are tappable for Registration/Admin record review and editing, and for QR Release the card opens the QR pass.
+
+
+## Shared Local Event Server
+
+The system now includes a real shared local-server mode for event-day use.
+
+Run `START-PDW-SERVER.bat` on the Windows event laptop. Staff phones connected to the same local hotspot/Wi-Fi open the address printed by the server (port 8787).
+
+The shared mode uses one central laptop database for Registration, QR Release, Snack, Lunch, Raffle and Admin. Internet/load is not required on the local network.
+
+See `LOCAL-SERVER-SETUP.md` for preparation, testing, backups and emergency fallback instructions.
+
+The approved v17 login design and approved v21 Attendee Registration design remain locked.
