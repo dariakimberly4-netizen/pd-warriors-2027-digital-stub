@@ -1263,3 +1263,34 @@
 #attendeesPanel .attendee-card-button.new-feature-highlight::after{
   content:"NEW • TAP TO OPEN"!important;
 }
+
+
+/* ===== INTERACTION LAYER FIX v25 =====
+   Functionality only. Locked visual designs remain unchanged. */
+#attendeesPanel,
+#attendeesPanel .panel,
+#attendeeList{
+  position:relative!important;
+}
+#attendeesPanel .panel{
+  z-index:10!important;
+}
+#attendeeSearch,
+#addAttendeeBtn,
+#attendeeList,
+#attendeesPanel .attendee-card-button,
+#attendeesPanel .attendee-row-clickable{
+  position:relative!important;
+  z-index:20!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+#attendeeSearch{
+  z-index:30!important;
+  touch-action:auto!important;
+  -webkit-user-select:text!important;
+  user-select:text!important;
+}
+#attendeesPanel [data-new-feature]::after{
+  pointer-events:none!important;
+}
