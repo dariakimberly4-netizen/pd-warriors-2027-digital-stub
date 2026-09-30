@@ -196,3 +196,16 @@
   .login-submit{height:45px;min-height:45px}
   .simple-demo-logins button{height:39px;min-height:39px}
 }
+
+
+/* ===== DRAFT MASTERLIST MODULE ===== */
+.tabs{grid-template-columns:repeat(5,1fr)}
+.draft-pill{display:inline-flex;background:#fff4d7!important;color:#7b5b00!important;border:1px solid #e0bd58;margin-bottom:8px}
+.masterlist-stats{margin:18px 0}
+.masterlist-actions{margin:14px 0}
+.masterlist-note{margin-top:14px}
+.masterlist-row{border-left:4px solid #d7a63c}
+.masterlist-row small{display:block;margin-top:4px}
+.draft-mini{font-size:.72rem;font-weight:900;letter-spacing:.08em;color:#7b5b00;background:#fff4d7;border:1px solid #e0bd58;border-radius:999px;padding:6px 9px}
+@media(max-width:800px){.tabs{grid-template-columns:1fr 1fr}.masterlist-actions{grid-template-columns:1fr}.masterlist-stats{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.masterlist-stats{grid-template-columns:1fr 1fr}.masterlist-row{grid-template-columns:1fr auto}}
