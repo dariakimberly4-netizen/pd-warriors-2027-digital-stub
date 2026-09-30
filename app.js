@@ -158,7 +158,12 @@ function activateView(view){
 function rebuildRoleMenu(){
   const nav=$('.tabs');
   if(!nav)return;
+  const role=staffRole();
   const views=rolePerm().views||[];
+  const existing=[...nav.querySelectorAll('.tab')].map(x=>x.dataset.view);
+  nav.style.gridTemplateColumns='repeat('+Math.max(1,views.length)+', minmax(0,1fr))';
+  if(nav.dataset.role===role && existing.length===views.length && existing.every((v,i)=>v===views[i]))return;
+  nav.dataset.role=role;
   nav.innerHTML=views.map((view,i)=>{
     const nf=view==='masterlist'?' data-new-feature="masterlist"':'';
     return '<button class="tab'+(i===0?' active':'')+'" data-view="'+view+'"'+nf+'>'+ROLE_VIEW_LABELS[view]+'</button>';
