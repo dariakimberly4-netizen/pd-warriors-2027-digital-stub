@@ -1,0 +1,11 @@
+{
+  "name":"PD Warriors 2027 Digital Stub",
+  "short_name":"PDW Stub",
+  "description":"Offline-first QR digital stub and claiming system.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#fbf7eb",
+  "theme_color":"#174736",
+  "icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
