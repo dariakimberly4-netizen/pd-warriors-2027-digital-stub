@@ -186,9 +186,23 @@ function selectAttendee(a){
   renderClaimButtons();$('#claimMessage').textContent='';window.scrollTo({top:$('#attendeeCard').offsetTop-10,behavior:'smooth'});
 }
 
-function renderClaimButtons(){if(!current)return;const box=$('#claimButtons');box.innerHTML='';['SNACK','LUNCH','RAFFLE'].forEach(kind=>{const allowed=entitlements(current).includes(kind);const c=current.claims[kind];const b=document.createElement('button');b.className='claim-btn '+(!allowed?'blocked':c?'claimed':'');b.disabled=!allowed;b.innerHTML=`<span>${kind==='SNACK'?'🍪':kind==='LUNCH'?'🍱':'🎟'} ${kind}</span><small>${!allowed?'NOT ENTITLED':c?'CLAIMED · '+new Date(c.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'TAP TO CLAIM'}</small>`;if(allowed)b.addEventListener('click',()=>claim(kind));box.appendChild(b)})}
+function renderClaimButtons(){
+  if(!current)return;
+  const box=$('#claimButtons');box.innerHTML='';
+  const kinds=staffRole()==='ADMIN'?['SNACK','LUNCH','RAFFLE']:(rolePerm().claims||[]);
+  kinds.forEach(kind=>{
+    const entitled=entitlements(current).includes(kind);
+    const c=current.claims[kind];
+    const b=document.createElement('button');
+    b.className='claim-btn '+(!entitled?'blocked':c?'claimed':'');
+    b.disabled=!entitled;
+    b.innerHTML=`<span>${kind==='SNACK'?'🍪':kind==='LUNCH'?'🍱':'🎟'} ${kind}</span><small>${!entitled?'NOT ENTITLED':c?'CLAIMED · '+new Date(c.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'TAP TO CLAIM'}</small>`;
+    if(entitled)b.addEventListener('click',()=>claim(kind));
+    box.appendChild(b);
+  });
+}
 
-function claim(kind){if(!current)return;if(!entitlements(current).includes(kind)){message('Not entitled to '+kind,true);return}const old=current.claims[kind];if(old){$('#claimMessage').textContent=`⚠ ALREADY CLAIMED — ${nowText(old.time)} by ${old.staff}`;$('#claimMessage').style.color='var(--danger)';return}current.claims[kind]={time:new Date().toISOString(),staff};audit('CLAIM_'+kind,current.id,kind+' claimed');saveState();renderClaimButtons();$('#claimMessage').textContent=`✓ ${kind} CLAIM SUCCESSFUL — ${current.name}`;$('#claimMessage').style.color='var(--ok)'}
+function claim(kind){if(!current)return;if(!canClaim(kind)){message('This staff role cannot claim '+kind+'.',true);return}if(!entitlements(current).includes(kind)){message('Not entitled to '+kind,true);return}const old=current.claims[kind];if(old){$('#claimMessage').textContent=`⚠ ALREADY CLAIMED — ${nowText(old.time)} by ${old.staff}`;$('#claimMessage').style.color='var(--danger)';return}current.claims[kind]={time:new Date().toISOString(),staff};audit('CLAIM_'+kind,current.id,kind+' claimed');saveState();renderClaimButtons();$('#claimMessage').textContent=`✓ ${kind} CLAIM SUCCESSFUL — ${current.name}`;$('#claimMessage').style.color='var(--ok)'}
 function message(t,bad=false){$('#claimMessage').textContent=t;$('#claimMessage').style.color=bad?'var(--danger)':'var(--ok)'}
 
 function search(q){q=q.trim().toLowerCase();if(!q)return[];return state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))).slice(0,8)}
@@ -196,11 +210,24 @@ function renderSearchResults(list){const box=$('#searchResults');box.innerHTML='
 $('#quickSearchBtn').onclick=()=>renderSearchResults(search($('#quickSearch').value));$('#quickSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderSearchResults(search(e.target.value))}});
 $('#manualBtn').onclick=()=>{const code=prompt('Enter attendee code (example PDW-0001):');if(code){const a=byId(code);a?selectAttendee(a):alert('Attendee not found')}};
 
-function renderAttendeeList(){const q=($('#attendeeSearch')?.value||'').toLowerCase();const box=$('#attendeeList');if(!box)return;box.innerHTML='';state.attendees.filter(a=>!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q)).forEach(a=>{const d=document.createElement('div');d.className='attendee-row';const claims=Object.keys(a.claims||{}).join(', ')||'No claims';d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div><div class="row-actions"><button class="secondary open">Open</button><button class="secondary pass">QR Pass</button></div>`;d.querySelector('.open').onclick=()=>{$$('.tab')[0].click();selectAttendee(a)};d.querySelector('.pass').onclick=()=>showPass(a);box.appendChild(d)})}
+function renderAttendeeList(){
+  const q=($('#attendeeSearch')?.value||'').toLowerCase();
+  const box=$('#attendeeList');if(!box)return;box.innerHTML='';
+  state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))).forEach(a=>{
+    const d=document.createElement('div');d.className='attendee-row';
+    const claims=Object.keys(a.claims||{}).join(', ')||'No claims';
+    const qrBtn=can('qrRelease')?'<button class="secondary pass">QR Pass</button>':'';
+    const openBtn=(rolePerm().views||[]).includes('claim')?'<button class="secondary open">Open</button>':'';
+    d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div><div class="row-actions">${openBtn}${qrBtn}</div>`;
+    d.querySelector('.open')?.addEventListener('click',()=>{const t=$('.tab').find(x=>x.dataset.view==='claim');t?.click();selectAttendee(a)});
+    d.querySelector('.pass')?.addEventListener('click',()=>showPass(a));
+    box.appendChild(d);
+  });
+}
 $('#attendeeSearch').addEventListener('input',renderAttendeeList);
 
 function nextId(type,linked){if(type==='PATIENT'){const nums=state.attendees.filter(a=>a.type==='PATIENT').map(a=>parseInt(a.id.match(/\d+/)?.[0]||0));return'PDW-'+String(Math.max(0,...nums)+1).padStart(4,'0')}const base=linked?.match(/PDW-(\d+)/)?.[1]||String(state.attendees.filter(a=>a.type==='COMPANION').length+1).padStart(4,'0');const siblings=state.attendees.filter(a=>a.type==='COMPANION'&&a.id.startsWith('COM-'+base)).length;return'COM-'+base+'-'+String.fromCharCode(65+siblings)}
-$('#addAttendeeBtn').onclick=()=>$('#attendeeDialog').showModal();$('#closeAttendeeDialog').onclick=()=>$('#attendeeDialog').close();
+$('#addAttendeeBtn').onclick=()=>{if(!can('addAttendee'))return;$('#attendeeDialog').showModal()};$('#closeAttendeeDialog').onclick=()=>$('#attendeeDialog').close();
 $('#attendeeForm').addEventListener('submit',e=>{e.preventDefault();const name=$('#newName').value.trim(),type=$('#newType').value,linked=cleanCode($('#newLinkedPatient').value);if(!name)return;const a={id:nextId(type,linked),name,type,linkedPatient:type==='COMPANION'?linked:'',checkedIn:false,claims:{}};state.attendees.push(a);audit('ADD_ATTENDEE',a.id,a.name);saveState();e.target.reset();$('#attendeeDialog').close();showPass(a)});
 
 
@@ -239,7 +266,7 @@ async function saveQrPng(attendee){
   document.body.appendChild(a);a.click();a.remove();
 }
 
-function showPass(a){current=a;const allowed=qrReleaseAllowed();$('#sharePassBtn').disabled=!allowed;$('#downloadPassBtn').disabled=!allowed;$('#sharePassBtn').textContent=allowed?'↗ SHARE QR':'🔒 SHARE QR';$('#downloadPassBtn').textContent=allowed?'⬇ SAVE QR AS PNG':'🔒 SAVE QR AS PNG';refreshNewFeatureHighlights();$('#passActionMessage').textContent=allowed?'':'QR release is locked while the masterlist is DRAFT.';$('#passType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';$('#passName').textContent=a.name;$('#passId').textContent=a.id;$('#passEntitlements').innerHTML=entitlements(a).map(x=>`<span>✓ ${x}</span>`).join('');const q=$('#qrBox');q.innerHTML='';new QRCode(q,{text:'PDW2027:'+a.id,width:280,height:280,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('#passDialog').showModal()}
+function showPass(a){if(!can('qrRelease')){alert('This staff role cannot release QR passes.');return}current=a;const allowed=qrReleaseAllowed();$('#sharePassBtn').disabled=!allowed;$('#downloadPassBtn').disabled=!allowed;$('#sharePassBtn').textContent=allowed?'↗ SHARE QR':'🔒 SHARE QR';$('#downloadPassBtn').textContent=allowed?'⬇ SAVE QR AS PNG':'🔒 SAVE QR AS PNG';refreshNewFeatureHighlights();$('#passActionMessage').textContent=allowed?'':'QR release is locked while the masterlist is DRAFT.';$('#passType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';$('#passName').textContent=a.name;$('#passId').textContent=a.id;$('#passEntitlements').innerHTML=entitlements(a).map(x=>`<span>✓ ${x}</span>`).join('');const q=$('#qrBox');q.innerHTML='';new QRCode(q,{text:'PDW2027:'+a.id,width:280,height:280,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('#passDialog').showModal()}
 $('#showPassBtn').onclick=()=>current&&showPass(current);$('#closePassBtn').onclick=()=>$('#passDialog').close();
 $('#downloadPassBtn').onclick=async()=>{
   if(!current)return;
@@ -282,7 +309,7 @@ $('#sharePassBtn').onclick=async()=>{
 function renderStats(){const checked=state.attendees.filter(a=>a.checkedIn).length;const count=k=>state.attendees.filter(a=>a.claims?.[k]).length;$('#statPresent').textContent=checked;$('#statSnack').textContent=count('SNACK');$('#statLunch').textContent=count('LUNCH');$('#statRaffle').textContent=count('RAFFLE')}
 function eligibleRaffle(){return state.attendees.filter(a=>a.type==='PATIENT'&&a.checkedIn&&a.draftStatus!=='REMOVED'&&!a.inactive)}
 function renderRaffle(){const pool=eligibleRaffle();$('#raffleEligibleCount').textContent=pool.length;const box=$('#rafflePool');box.innerHTML='';pool.forEach(a=>{const d=document.createElement('div');d.className='attendee-row';d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small></div>`;box.appendChild(d)})}
-$('#drawRaffleBtn').onclick=()=>{const pool=eligibleRaffle().filter(a=>!state.raffleWinners.some(w=>w.attendeeId===a.id));if(!pool.length){alert('No eligible unchecked winner available.');return}const a=pool[Math.floor(Math.random()*pool.length)];state.raffleWinners.push({attendeeId:a.id,name:a.name,time:new Date().toISOString(),staff});audit('RAFFLE_WINNER',a.id,a.name);saveState();const w=$('#raffleWinner');w.classList.remove('hidden');w.innerHTML=`<span>🎉 WINNER</span><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small>`};
+$('#drawRaffleBtn').onclick=()=>{if(!can('raffleDraw')){alert('This staff role cannot draw the raffle.');return}const pool=eligibleRaffle().filter(a=>!state.raffleWinners.some(w=>w.attendeeId===a.id));if(!pool.length){alert('No eligible unchecked winner available.');return}const a=pool[Math.floor(Math.random()*pool.length)];state.raffleWinners.push({attendeeId:a.id,name:a.name,time:new Date().toISOString(),staff});audit('RAFFLE_WINNER',a.id,a.name);saveState();const w=$('#raffleWinner');w.classList.remove('hidden');w.innerHTML=`<span>🎉 WINNER</span><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small>`};
 
 function downloadText(name,text,type='application/json'){const b=new Blob([text],{type});const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
 $('#exportJsonBtn').onclick=()=>{audit('EXPORT_BACKUP','','Manual backup');saveState();downloadText('PDW2027-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(state,null,2));$('#backupMessage').textContent='✓ Backup exported.'};
