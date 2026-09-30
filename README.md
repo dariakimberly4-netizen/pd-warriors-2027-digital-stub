@@ -2,12 +2,12 @@
 
 GitHub-ready offline-first PWA for attendee QR passes, Snack/Lunch/Raffle claiming, duplicate prevention, lost-QR recovery, raffle eligibility, and multi-device backup/merge.
 
-## Demo staff accounts
+## Staff accounts
 - Gen / `PDW2027!`
 - Bot / `PDW2027!`
 - Kim / `PDW2027!`
 
-> These are demo-only credentials stored in front-end code. Replace with a stronger authentication model before production use.
+> These credentials are stored in front-end code for this offline event system. Replace with a stronger authentication model before production use.
 
 ## Rules
 - Patient / PD Warrior: Snack ✓ Lunch ✓ Raffle ✓
