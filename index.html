@@ -12,28 +12,50 @@
 </head>
 <body>
   <main id="app">
-    <section id="loginView" class="screen login-screen">
-      <div class="brand-card">
-        <div class="logo-mark" aria-hidden="true">PDW</div>
-        <p class="eyebrow">PARKINSON'S DISEASE WARRIORS PHILIPPINES</p>
-        <h1>GET TOGETHER 2027</h1>
-        <p class="subtitle">Offline Digital Stub & Claiming System</p>
-        <div class="offline-pill" id="networkPill">● Checking connection…</div>
-      </div>
+    <section id="loginView" class="screen login-screen login-simple">
+      <div class="login-shell">
+        <header class="login-brand-simple">
+          <img src="icon.svg" alt="Parkinson's Disease Warriors Philippines" class="pdw-logo" />
+          <div class="event-title">
+            <span>GET TOGETHER</span>
+            <strong>2027</strong>
+          </div>
+          <div class="event-rule" aria-hidden="true"><span></span><i></i><span></span></div>
+          <p class="system-name">OFFLINE DIGITAL STUB &amp; CLAIMING SYSTEM</p>
+          <div class="offline-pill" id="networkPill">● Checking connection…</div>
+        </header>
 
-      <form id="loginForm" class="panel login-panel">
-        <h2>Staff Login</h2>
-        <label>Username<input id="username" autocomplete="username" required /></label>
-        <label>Password<input id="password" type="password" autocomplete="current-password" required /></label>
-        <button class="primary xl" type="submit">LOG IN</button>
-        <div id="loginError" class="error" role="alert"></div>
-        <div class="demo-logins">
-          <p>Demo one-tap accounts</p>
-          <button type="button" data-demo="Gen">Admin 1 · Gen</button>
-          <button type="button" data-demo="Bot">Admin 2 · Bot</button>
-          <button type="button" data-demo="Kim">Admin 3 · Kim</button>
-        </div>
-      </form>
+        <form id="loginForm" class="panel login-panel login-panel-simple">
+          <h2 class="sr-only">Staff Login</h2>
+
+          <label class="login-field">
+            <span class="field-icon" aria-hidden="true">●</span>
+            <span class="sr-only">Username</span>
+            <input id="username" autocomplete="username" placeholder="Username" required />
+          </label>
+
+          <label class="login-field">
+            <span class="field-icon lock-icon" aria-hidden="true">◆</span>
+            <span class="sr-only">Password</span>
+            <input id="password" type="password" autocomplete="current-password" placeholder="Password" required />
+          </label>
+
+          <button class="primary xl login-submit" type="submit">
+            <span>LOG IN</span><b aria-hidden="true">›</b>
+          </button>
+
+          <div id="loginError" class="error" role="alert"></div>
+
+          <div class="demo-divider"><span></span><strong>DEMO ONE-TAP ACCOUNTS</strong><span></span></div>
+
+          <div class="demo-logins simple-demo-logins">
+            <button type="button" data-demo="Gen"><i class="admin-dot gen"></i><span>Admin 1 - Gen</span><b>›</b></button>
+            <button type="button" data-demo="Bot"><i class="admin-dot bot"></i><span>Admin 2 - Bot</span><b>›</b></button>
+            <button type="button" data-demo="Kim"><i class="admin-dot kim"></i><span>Admin 3 - Kim</span><b>›</b></button>
+          </div>
+        </form>
+      </div>
+      <div class="login-wave" aria-hidden="true"></div>
     </section>
 
     <section id="mainView" class="screen hidden">
