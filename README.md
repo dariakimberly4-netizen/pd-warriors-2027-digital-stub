@@ -30,3 +30,19 @@ Each station can run independently. Export JSON from Snack, Lunch, Registration,
 
 ## GitHub Pages
 Upload all files to the repository root, then enable **Settings → Pages → Deploy from branch → main / root**.
+
+
+## Approved Master Login Design — LOCKED
+
+The current v17 login screen is the approved master design.
+
+Do not change its:
+- sizing and proportions
+- typography and text scale
+- ivory / deep green / gold visual treatment
+- Username / Password / Log In layout
+- Admin 1 / Admin 2 / Admin 3 one-tap layout
+- Staff Role Login layout
+- spacing, card shape, or overall mobile composition
+
+Future features must be added without redesigning this login unless the project owner explicitly requests an unlock or redesign.
