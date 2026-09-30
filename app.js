@@ -272,26 +272,119 @@ function renderSearchResults(list){const box=$('#searchResults');box.innerHTML='
 $('#quickSearchBtn').onclick=()=>renderSearchResults(search($('#quickSearch').value));$('#quickSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderSearchResults(search(e.target.value))}});
 $('#manualBtn').onclick=()=>{const code=prompt('Enter attendee code (example PDW-0001):');if(code){const a=byId(code);a?selectAttendee(a):alert('Attendee not found')}};
 
+let editingAttendeeId='';
+
+function openAttendeeRecord(a){
+  if(!a || !can('addAttendee'))return;
+  editingAttendeeId=a.id;
+  $('#attendeeDialogTitle').textContent='Attendee Record';
+  $('#attendeeSubmitBtn').textContent='SAVE CHANGES';
+  $('#newName').value=a.name||'';
+  $('#newType').value=a.type||'PATIENT';
+  $('#newLinkedPatient').value=a.linkedPatient||'';
+  markFeatureSeen('attendee-card-open');
+  refreshNewFeatureHighlights();
+  $('#attendeeDialog').showModal();
+}
+
+function openNewAttendee(){
+  if(!can('addAttendee'))return;
+  editingAttendeeId='';
+  $('#attendeeForm').reset();
+  $('#attendeeDialogTitle').textContent='Add Attendee';
+  $('#attendeeSubmitBtn').textContent='CREATE ATTENDEE & QR';
+  $('#attendeeDialog').showModal();
+}
+
 function renderAttendeeList(){
   const q=($('#attendeeSearch')?.value||'').toLowerCase();
   const box=$('#attendeeList');if(!box)return;box.innerHTML='';
+  const role=staffRole();
   state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))).forEach(a=>{
     const d=document.createElement('div');d.className='attendee-row';
     const claims=Object.keys(a.claims||{}).join(', ')||'No claims';
     const qrBtn=can('qrRelease')?'<button class="secondary pass">QR Pass</button>':'';
     const openBtn=(rolePerm().views||[]).includes('claim')?'<button class="secondary open">Open</button>':'';
     d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id} · ${a.type}${a.linkedPatient?' · linked '+a.linkedPatient:''}<br>${a.checkedIn?'✓ Checked in':'Not checked in'} · ${escapeHtml(claims)}</small></div><div class="row-actions">${openBtn}${qrBtn}</div>`;
-    d.querySelector('.open')?.addEventListener('click',()=>{const t=$('.tab').find(x=>x.dataset.view==='claim');t?.click();selectAttendee(a)});
+
+    if(role==='REGISTRATION'||role==='ADMIN'){
+      d.classList.add('attendee-row-clickable');
+      d.tabIndex=0;
+      d.setAttribute('role','button');
+      d.setAttribute('aria-label','Open attendee record for '+a.name);
+      d.dataset.newFeature='attendee-card-open';
+      const openRecord=()=>openAttendeeRecord(a);
+      d.addEventListener('click',e=>{
+        if(e.target.closest('button'))return;
+        openRecord();
+      });
+      d.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();openRecord();}
+      });
+    }else if(role==='QR_RELEASE'){
+      d.classList.add('attendee-row-clickable');
+      d.tabIndex=0;
+      d.setAttribute('role','button');
+      d.setAttribute('aria-label','Open QR pass for '+a.name);
+      const openPass=()=>showPass(a);
+      d.addEventListener('click',e=>{
+        if(e.target.closest('button'))return;
+        openPass();
+      });
+      d.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();openPass();}
+      });
+    }
+
+    d.querySelector('.open')?.addEventListener('click',()=>{
+      activateView('claim');
+      selectAttendee(a);
+    });
     d.querySelector('.pass')?.addEventListener('click',()=>showPass(a));
     box.appendChild(d);
   });
+  refreshNewFeatureHighlights();
 }
 $('#attendeeSearch').addEventListener('input',renderAttendeeList);
 
 function nextId(type,linked){if(type==='PATIENT'){const nums=state.attendees.filter(a=>a.type==='PATIENT').map(a=>parseInt(a.id.match(/\d+/)?.[0]||0));return'PDW-'+String(Math.max(0,...nums)+1).padStart(4,'0')}const base=linked?.match(/PDW-(\d+)/)?.[1]||String(state.attendees.filter(a=>a.type==='COMPANION').length+1).padStart(4,'0');const siblings=state.attendees.filter(a=>a.type==='COMPANION'&&a.id.startsWith('COM-'+base)).length;return'COM-'+base+'-'+String.fromCharCode(65+siblings)}
-$('#addAttendeeBtn').onclick=()=>{if(!can('addAttendee'))return;$('#attendeeDialog').showModal()};$('#closeAttendeeDialog').onclick=()=>$('#attendeeDialog').close();
-$('#attendeeForm').addEventListener('submit',e=>{e.preventDefault();const name=$('#newName').value.trim(),type=$('#newType').value,linked=cleanCode($('#newLinkedPatient').value);if(!name)return;const a={id:nextId(type,linked),name,type,linkedPatient:type==='COMPANION'?linked:'',checkedIn:false,claims:{}};state.attendees.push(a);audit('ADD_ATTENDEE',a.id,a.name);saveState();e.target.reset();$('#attendeeDialog').close();if(can('qrRelease'))showPass(a);else{const tab=$('.tab').find(x=>x.dataset.view==='attendees');tab?.click()}});
+$('#addAttendeeBtn').onclick=openNewAttendee;$('#closeAttendeeDialog').onclick=()=>{editingAttendeeId='';$('#attendeeForm').reset();$('#attendeeDialog').close()};
+$('#attendeeForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!can('addAttendee'))return;
+  const name=$('#newName').value.trim();
+  const type=$('#newType').value;
+  const linked=cleanCode($('#newLinkedPatient').value);
+  if(!name)return;
 
+  if(editingAttendeeId){
+    const a=byId(editingAttendeeId);
+    if(!a)return;
+    const before={name:a.name,type:a.type,linkedPatient:a.linkedPatient||''};
+    a.name=name;
+    a.type=type;
+    a.linkedPatient=type==='COMPANION'?linked:'';
+    audit('EDIT_ATTENDEE',a.id,JSON.stringify({before,after:{name:a.name,type:a.type,linkedPatient:a.linkedPatient}}));
+    saveState();
+    editingAttendeeId='';
+    e.target.reset();
+    $('#attendeeDialog').close();
+    renderAttendeeList();
+    return;
+  }
+
+  const a={id:nextId(type,linked),name,type,linkedPatient:type==='COMPANION'?linked:'',checkedIn:false,claims:{}};
+  state.attendees.push(a);
+  audit('ADD_ATTENDEE',a.id,a.name);
+  saveState();
+  e.target.reset();
+  $('#attendeeDialog').close();
+  if(can('qrRelease'))showPass(a);
+  else{
+    activateView('attendees');
+    renderAttendeeList();
+  }
+});
 
 
 function qrDataUrlFor(attendee,size=320){
@@ -390,7 +483,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=21',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=22',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
