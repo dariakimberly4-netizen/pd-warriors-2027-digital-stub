@@ -133,30 +133,73 @@ function escapeHtml(s){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':
 
 function applyRoleAccess(){
   if(!staff)return;
-  const permitted=new Set(rolePerm().views||[]);
-  $('.tab').forEach(tab=>{
+  const perm=rolePerm();
+  const permitted=new Set(perm.views||[]);
+
+  // Show only modules assigned to this logged-in role.
+  $$('.tab').forEach(tab=>{
     const allowed=permitted.has(tab.dataset.view);
     tab.classList.toggle('role-hidden',!allowed);
+    tab.hidden=!allowed;
     tab.disabled=!allowed;
+    tab.setAttribute('aria-hidden',allowed?'false':'true');
   });
-  const visibleTabs=$('.tab').filter(t=>!t.classList.contains('role-hidden'));
+
+  const visibleTabs=$$('.tab').filter(t=>!t.hidden&&!t.classList.contains('role-hidden'));
   const active=$('.tab.active');
-  if(!active||active.classList.contains('role-hidden')){
-    $('.tab').forEach(t=>t.classList.remove('active'));
-    visibleTabs[0]?.classList.add('active');
-    $('.view-panel').forEach(x=>x.classList.add('hidden'));
-    if(visibleTabs[0])$('#'+visibleTabs[0].dataset.view+'Panel')?.classList.remove('hidden');
+  if(!active||active.hidden||active.classList.contains('role-hidden')){
+    $$('.tab').forEach(t=>t.classList.remove('active'));
+    $$('.view-panel').forEach(x=>x.classList.add('hidden'));
+    const first=visibleTabs[0];
+    if(first){
+      first.classList.add('active');
+      $('#'+first.dataset.view+'Panel')?.classList.remove('hidden');
+    }
   }
-  if($('#addAttendeeBtn'))$('#addAttendeeBtn').classList.toggle('hidden',!can('addAttendee'));
-  if($('#showPassBtn'))$('#showPassBtn').classList.toggle('hidden',!can('qrRelease'));
-  if($('#drawRaffleBtn'))$('#drawRaffleBtn').classList.toggle('hidden',!can('raffleDraw'));
-  if($('#applyDraftBtn'))$('#applyDraftBtn').classList.toggle('hidden',!can('masterlist'));
-  if($('#reviewIssuesBtn'))$('#reviewIssuesBtn').classList.toggle('hidden',!can('masterlist'));
-  if($('#finalizeMasterlistBtn'))$('#finalizeMasterlistBtn').classList.toggle('hidden',!can('masterlist'));
-  if($('#reopenDraftBtn')&&!can('masterlist'))$('#reopenDraftBtn').classList.add('hidden');
-  if($('#importCsvLabel'))$('#importCsvLabel').classList.toggle('hidden',!can('masterlist'));
-  if($('#downloadAllQrBtn'))$('#downloadAllQrBtn').classList.toggle('hidden',!(can('masterlist')||can('qrRelease')));
+
+  // Registration / attendee actions.
+  if($('#addAttendeeBtn'))$('#addAttendeeBtn').classList.toggle('hidden',!perm.addAttendee);
+  if($('#showPassBtn'))$('#showPassBtn').classList.toggle('hidden',!perm.qrRelease);
+
+  // Masterlist actions.
+  if($('#applyDraftBtn'))$('#applyDraftBtn').classList.toggle('hidden',!perm.masterlist);
+  if($('#reviewIssuesBtn'))$('#reviewIssuesBtn').classList.toggle('hidden',!perm.masterlist);
+  if($('#finalizeMasterlistBtn'))$('#finalizeMasterlistBtn').classList.toggle('hidden',!perm.masterlist);
+  if($('#reopenDraftBtn')&&!perm.masterlist)$('#reopenDraftBtn').classList.add('hidden');
+  if($('#importCsvLabel'))$('#importCsvLabel').classList.toggle('hidden',!perm.masterlist);
+  if($('#downloadAllQrBtn'))$('#downloadAllQrBtn').classList.toggle('hidden',!(perm.masterlist||perm.qrRelease));
+
+  // Raffle draw is visible only to Admin / Raffle role.
+  if($('#drawRaffleBtn'))$('#drawRaffleBtn').classList.toggle('hidden',!perm.raffleDraw);
+
+  // Claim screen: show only claim counters relevant to the logged-in station.
+  const role=staffRole();
+  const statPresent=$('#statPresent')?.closest('.stat');
+  const statSnack=$('#statSnack')?.closest('.stat');
+  const statLunch=$('#statLunch')?.closest('.stat');
+  const statRaffle=$('#statRaffle')?.closest('.stat');
+  [statPresent,statSnack,statLunch,statRaffle].forEach(x=>x?.classList.add('role-hidden'));
+
+  if(role==='ADMIN'){
+    [statPresent,statSnack,statLunch,statRaffle].forEach(x=>x?.classList.remove('role-hidden'));
+  }else if(role==='SNACK'){
+    statSnack?.classList.remove('role-hidden');
+  }else if(role==='LUNCH'){
+    statLunch?.classList.remove('role-hidden');
+  }else if(role==='RAFFLE'){
+    statRaffle?.classList.remove('role-hidden');
+  }
+
+  // Scanner/search tools only make sense for claim roles and Admin.
+  const claimAccess=role==='ADMIN'||['SNACK','LUNCH','RAFFLE'].includes(role);
+  ['scanBtn','manualBtn','quickSearch','quickSearchBtn'].forEach(id=>{
+    const el=$('#'+id);
+    if(el)el.classList.toggle('hidden',!claimAccess);
+  });
+
+  refreshNewFeatureHighlights?.();
 }
+
 function showApp(){
   $('#loginView').classList.toggle('hidden',!!staff);
   $('#mainView').classList.toggle('hidden',!staff);
@@ -328,7 +371,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=17',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=18',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
