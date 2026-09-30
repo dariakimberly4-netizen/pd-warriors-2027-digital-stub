@@ -4,16 +4,95 @@ const DEMO_PASS='PDW2027!';
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 
-const sampleAttendees=[
-  {id:'PDW-0001',name:'Juan Dela Cruz',type:'PATIENT',linkedPatient:'',checkedIn:false,claims:{}},
-  {id:'COM-0001-A',name:'Maria Dela Cruz',type:'COMPANION',linkedPatient:'PDW-0001',checkedIn:false,claims:{}},
-  {id:'COM-0001-B',name:'Ana Dela Cruz',type:'COMPANION',linkedPatient:'PDW-0001',checkedIn:false,claims:{}},
-  {id:'PDW-0002',name:'Liza Santos',type:'PATIENT',linkedPatient:'',checkedIn:false,claims:{}},
-  {id:'COM-0002-A',name:'Mila Santos',type:'COMPANION',linkedPatient:'PDW-0002',checkedIn:false,claims:{}},
-  {id:'PDW-0003',name:'Ramon Reyes',type:'PATIENT',linkedPatient:'',checkedIn:false,claims:{}}
+
+const CURRENT_DRAFT_ROWS=[
+  {n:'1',patient:'Dionne Jane Silvestre-Ali',nickname:'Dona',patientCount:1,companionCount:3,companions:'Chelsy Ali - Chelsy - 6\nAntonio Silvestre - Tony 66\nHope Silvestre - Hope - 67',confirmed:'DONA / TONY, HOPE, CHELSY'},
+  {n:'2',patient:'Mark Angelo Rapiz',nickname:'Mark',patientCount:1,companionCount:2,companions:"Sarah Jane Rapiz - zhara - 41\nJean' Marko Rapiz - JM - 18",confirmed:'MARK / ZHARA, JM'},
+  {n:'3',patient:'Maria corazon ocumen',nickname:'Bobot',patientCount:1,companionCount:4,companions:'Driver kuyan Rowell Tablang\nCaregiver- Daisy\nFriend- annie Preligera\nNeri Vega',confirmed:'BOBOT / ROWELL, DAISY, ANNIE, NERI'},
+  {n:'4',patient:'Pauline Regidor',nickname:'Paulette',patientCount:1,companionCount:0,companions:'na'},
+  {n:'5',patient:'ANNA MAUREEN PEDRACIO',nickname:'Anne',patientCount:1,companionCount:0,companions:'None'},
+  {n:'6',patient:'Jocelyn C.Fiesta',nickname:'Jo',patientCount:1,companionCount:1,companions:'Joy F. Apolinario - Joy - 44'},
+  {n:'7',patient:'Gina Robles Bautista',nickname:'Gina',patientCount:1,companionCount:1,companions:'Angelyn Bautista - Angel - 35'},
+  {n:'8',patient:'Lourelyne M. Ballester',nickname:'Loury',patientCount:1,companionCount:1,companions:'David Lance Jireh Ballester - 23'},
+  {n:'9',patient:'Noel laureano',nickname:'Neil',patientCount:1,companionCount:0,companions:'Wala'},
+  {n:'10',patient:'Maria Marasigan',nickname:'Maria',patientCount:1,companionCount:1,companions:'Edgard Marasigan - 62'},
+  {n:'11',patient:'Alaine Gonzales',nickname:'Lhain',patientCount:1,companionCount:0,companions:'Laura Quinto - 76 yrs old'},
+  {n:'12',patient:'Victoria Villanueva',nickname:'Vicky',patientCount:1,companionCount:2,companions:'Michelle Villanueva - Mitch - 38\nLonilyn Rivero - Lyn - 22'},
+  {n:'13',patient:'Erwin O. Bongalos',nickname:'Win',patientCount:1,companionCount:0,companions:'N/A'},
+  {n:'15',patient:'Gloria V. Francisco',nickname:'Gloria',patientCount:0,companionCount:2,companions:'Jonathan, R.N 45\nKatrina, R.N. 40'},
+  {n:'16',patient:'Gemma Tolentino',nickname:'Gem',patientCount:1,companionCount:2,companions:'Mr. & Mrs. Francisco & Lanie William'},
+  {n:'17',patient:'Arsenio Umbal',nickname:'Senyong',patientCount:0,companionCount:1,companions:'Jubeth Umbal- jubeth-43'},
+  {n:'18',patient:'nadine segovia',nickname:'nadine',patientCount:1,companionCount:0,companions:'na'},
+  {n:'19',patient:'Glenn Janda',nickname:'Glenn',patientCount:1,companionCount:1,companions:'Hailie Amber Janda - 21'},
+  {n:'20',patient:'Maria Nancy Lasangre',nickname:'Nancy',patientCount:1,companionCount:1,companions:'Eduardo Lasangre Jr'},
+  {n:'21',patient:'Gloria Riveza',nickname:'Rica',patientCount:1,companionCount:1,companions:'Rica Riveza - 31'},
+  {n:'22',patient:'Nieves Cabrera',nickname:'Eves',patientCount:0,companionCount:1,companions:'Gen Cabrera 48'},
+  {n:'23',patient:'RONALDO M. FABIAN',nickname:'Ronald',patientCount:1,companionCount:1,companions:'Thess 56'},
+  {n:'24',patient:'Ma. Lolita C. Baltazar',nickname:'Lolit',patientCount:1,companionCount:2,companions:'Cirilo Baltazar- 65\nNelia Santileses-58'},
+  {n:'25',patient:'Edgar Dimailig',nickname:'Ed',patientCount:1,companionCount:0,companions:'NA'},
+  {n:'26',patient:'Felicito Evardome',nickname:'Felix',patientCount:1,companionCount:1,companions:'Celia56,Marissa 36'},
+  {n:'27',patient:'Kimberly Daria',nickname:'Kaye',patientCount:1,companionCount:2,companions:'Jasmin Daria 70\nAllyssa Pagaragan 17\nMom and dad',confirmed:'KAYE / JASMIN, ALLYSSA'},
+  {n:'28',patient:'Emmanuel Elias Tomagos',nickname:'Manny',patientCount:1,companionCount:0,companions:'None'},
+  {n:'29',patient:'Webster del crispino',nickname:'Randy',patientCount:0,companionCount:1,companions:'Mercy del crispino 55'},
+  {n:'30',patient:'Carina M Espora',nickname:'Carie or Kare',patientCount:1,companionCount:1,companions:'Jambihlds M. Bachini - JB\n29'}
 ];
 
-function newState(){return{version:1,attendees:structuredClone(sampleAttendees),audit:[],raffleWinners:[],updatedAt:new Date().toISOString()}}
+function normName(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function countVal(v){const m=String(v??'').match(/\d+/);return m?Number(m[0]):0}
+function cleanCompanionName(v){
+  let s=String(v||'').trim().replace(/\s+/g,' ');
+  s=s.replace(/^(driver\s+kuya[n]?\s*|driver\s*[-:]?\s*|caregiver\s*[-:]?\s*|friend\s*[-:]?\s*)/i,'');
+  if(/\s+-\s+/.test(s))s=s.split(/\s+-\s+/)[0].trim();
+  s=s.replace(/\s*[-–]?\s*\d+\s*(?:yrs?\.?|years?\s*old|yo|y\/o)?\s*$/i,'').trim();
+  return s;
+}
+function companionNamesForRow(r){
+  const count=countVal(r.companionCount);
+  const raw=String(r.companions||'').trim();
+  const empty=/^(none|na|n\/a|wala|0|-)?$/i.test(raw);
+  let review=false;
+  if(count===0)return {names:[],review:!empty&&!!raw};
+  let chunks=empty?[]:raw.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  chunks=chunks.filter(x=>!/^(mom and dad|none|na|n\/a|wala)$/i.test(x));
+  if(chunks.length===1&&chunks[0].includes(',')&&!/mr\.\s*&\s*mrs\./i.test(chunks[0])){
+    const parts=chunks[0].split(',').map(x=>x.trim()).filter(Boolean);
+    if(parts.length>1){chunks=parts;review=true}
+  }
+  let names=chunks.map(cleanCompanionName).filter(Boolean);
+  if(names.length!==count)review=true;
+  if(names.length>count)names=names.slice(0,count);
+  while(names.length<count)names.push('Companion '+(names.length+1)+' of '+String(r.patient||'Registrant').trim());
+  return {names,review};
+}
+function draftRowsToAttendees(rows){
+  const out=[];
+  rows.forEach((r,i)=>{
+    const base=String(parseInt(r.n,10)||i+1).padStart(4,'0');
+    const familyKey='F:'+normName(r.patient);
+    const patientCount=countVal(r.patientCount);
+    const comp=companionNamesForRow(r);
+    if(patientCount>0){
+      out.push({
+        id:'PDW-'+base,name:String(r.patient||'').trim(),nickname:String(r.nickname||'').trim(),
+        type:'PATIENT',linkedPatient:'',checkedIn:false,claims:{},
+        source:'DRAFT_MASTERLIST',sourceKey:'P:'+normName(r.patient),familyKey,
+        draftStatus:'ACTIVE',needsReview:comp.review
+      });
+    }
+    comp.names.forEach((name,j)=>{
+      out.push({
+        id:'COM-'+base+'-'+String.fromCharCode(65+j),name,type:'COMPANION',
+        linkedPatient:patientCount>0?'PDW-'+base:'',checkedIn:false,claims:{},
+        source:'DRAFT_MASTERLIST',sourceKey:'C:'+normName(r.patient)+':'+normName(name),
+        familyKey,draftStatus:'ACTIVE',needsReview:comp.review
+      });
+    });
+  });
+  return out;
+}
+const sampleAttendees=draftRowsToAttendees(CURRENT_DRAFT_ROWS);
+
+function newState(){return{version:2,attendees:structuredClone(sampleAttendees),audit:[],raffleWinners:[],masterlist:{status:'DRAFT',source:'Built-in Sheet1 snapshot',importedAt:null},updatedAt:new Date().toISOString()}}
 let state=loadState();
 let current=null;
 let staff=sessionStorage.getItem(STAFF_KEY)||'';
@@ -41,9 +120,10 @@ $('#logoutBtn').addEventListener('click',()=>{staff='';sessionStorage.removeItem
 function updateNetwork(){const online=navigator.onLine;$('#networkPill').textContent=online?'● Online — offline copy ready after install':'● Offline mode';$('#networkPill').style.background=online?'#edf4ef':'#f6ead0'}
 addEventListener('online',updateNetwork);addEventListener('offline',updateNetwork);updateNetwork();
 
-$$('.tab').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.view;$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.view-panel').forEach(x=>x.classList.add('hidden'));$('#'+v+'Panel').classList.remove('hidden');if(v==='raffle')renderRaffle();if(v==='backup')$('#backupMessage').textContent=''}));
+$$('.tab').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.view;$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.view-panel').forEach(x=>x.classList.add('hidden'));$('#'+v+'Panel').classList.remove('hidden');if(v==='raffle')renderRaffle();if(v==='masterlist')renderMasterlist();if(v==='backup')$('#backupMessage').textContent=''}));
 
 function selectAttendee(a){
+  if(a?.draftStatus==='REMOVED'||a?.inactive){alert('This attendee is inactive in the current draft masterlist.');return}
   current=a;
   if(!a.checkedIn){a.checkedIn=true;audit('CHECK_IN',a.id,'Checked in from claim/search screen');saveState()}
   $('#attendeeCard').classList.remove('hidden');
@@ -56,7 +136,7 @@ function renderClaimButtons(){if(!current)return;const box=$('#claimButtons');bo
 function claim(kind){if(!current)return;if(!entitlements(current).includes(kind)){message('Not entitled to '+kind,true);return}const old=current.claims[kind];if(old){$('#claimMessage').textContent=`⚠ ALREADY CLAIMED — ${nowText(old.time)} by ${old.staff}`;$('#claimMessage').style.color='var(--danger)';return}current.claims[kind]={time:new Date().toISOString(),staff};audit('CLAIM_'+kind,current.id,kind+' claimed');saveState();renderClaimButtons();$('#claimMessage').textContent=`✓ ${kind} CLAIM SUCCESSFUL — ${current.name}`;$('#claimMessage').style.color='var(--ok)'}
 function message(t,bad=false){$('#claimMessage').textContent=t;$('#claimMessage').style.color=bad?'var(--danger)':'var(--ok)'}
 
-function search(q){q=q.trim().toLowerCase();if(!q)return[];return state.attendees.filter(a=>a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q)).slice(0,8)}
+function search(q){q=q.trim().toLowerCase();if(!q)return[];return state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))).slice(0,8)}
 function renderSearchResults(list){const box=$('#searchResults');box.innerHTML='';if(!list.length){box.innerHTML='<p class="muted">No attendee found.</p>';return}list.forEach(a=>{const d=document.createElement('div');d.className='search-hit';d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><br><small>${escapeHtml(a.id)} · ${a.type}</small></div><button class="primary">Open</button>`;d.querySelector('button').onclick=()=>selectAttendee(a);box.appendChild(d)})}
 $('#quickSearchBtn').onclick=()=>renderSearchResults(search($('#quickSearch').value));$('#quickSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderSearchResults(search(e.target.value))}});
 $('#manualBtn').onclick=()=>{const code=prompt('Enter attendee code (example PDW-0001):');if(code){const a=byId(code);a?selectAttendee(a):alert('Attendee not found')}};
@@ -73,7 +153,7 @@ $('#showPassBtn').onclick=()=>current&&showPass(current);$('#closePassBtn').oncl
 $('#downloadPassBtn').onclick=()=>{const canvas=$('#qrBox canvas');const img=$('#qrBox img');let src=canvas?.toDataURL('image/png')||img?.src;if(!src){alert('QR image is still preparing. Try again.');return}const a=document.createElement('a');a.href=src;a.download=(current?.id||'attendee')+'-QR.png';a.click()};
 
 function renderStats(){const checked=state.attendees.filter(a=>a.checkedIn).length;const count=k=>state.attendees.filter(a=>a.claims?.[k]).length;$('#statPresent').textContent=checked;$('#statSnack').textContent=count('SNACK');$('#statLunch').textContent=count('LUNCH');$('#statRaffle').textContent=count('RAFFLE')}
-function eligibleRaffle(){return state.attendees.filter(a=>a.type==='PATIENT'&&a.checkedIn)}
+function eligibleRaffle(){return state.attendees.filter(a=>a.type==='PATIENT'&&a.checkedIn&&a.draftStatus!=='REMOVED'&&!a.inactive)}
 function renderRaffle(){const pool=eligibleRaffle();$('#raffleEligibleCount').textContent=pool.length;const box=$('#rafflePool');box.innerHTML='';pool.forEach(a=>{const d=document.createElement('div');d.className='attendee-row';d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small></div>`;box.appendChild(d)})}
 $('#drawRaffleBtn').onclick=()=>{const pool=eligibleRaffle().filter(a=>!state.raffleWinners.some(w=>w.attendeeId===a.id));if(!pool.length){alert('No eligible unchecked winner available.');return}const a=pool[Math.floor(Math.random()*pool.length)];state.raffleWinners.push({attendeeId:a.id,name:a.name,time:new Date().toISOString(),staff});audit('RAFFLE_WINNER',a.id,a.name);saveState();const w=$('#raffleWinner');w.classList.remove('hidden');w.innerHTML=`<span>🎉 WINNER</span><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small>`};
 
@@ -92,9 +172,152 @@ async function startScanner(){
 function stopScanner(){if(scanTimer)cancelAnimationFrame(scanTimer);scanTimer=null;if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}$('#scannerVideo').srcObject=null}
 $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#scanDialog').addEventListener('close',stopScanner);
 
-function renderAll(){renderStats();renderAttendeeList();renderRaffle();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
+function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=6',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=7',{updateViaCache:'none'}).catch(()=>{}));
+
+const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
+const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
+
+function nextFreeId(preferred,type,used){
+  if(preferred&&!used.has(preferred)){used.add(preferred);return preferred}
+  if(type==='PATIENT'){
+    let n=1;while(used.has('PDW-'+String(n).padStart(4,'0')))n++;
+    const id='PDW-'+String(n).padStart(4,'0');used.add(id);return id;
+  }
+  let n=1;
+  while(used.has('COM-X'+String(n).padStart(4,'0')))n++;
+  const id='COM-X'+String(n).padStart(4,'0');used.add(id);return id;
+}
+function samePersonKey(a){return a.type+'|'+normName(a.name)}
+function summarizeDraft(list){
+  const active=list.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive);
+  return {
+    patients:active.filter(a=>a.type==='PATIENT').length,
+    companions:active.filter(a=>a.type==='COMPANION').length,
+    total:active.length,
+    review:active.filter(a=>a.needsReview).length
+  };
+}
+function renderMasterlist(){
+  const draft=sampleAttendees;
+  const s=summarizeDraft(draft);
+  $('#draftPatients').textContent=s.patients;
+  $('#draftCompanions').textContent=s.companions;
+  $('#draftTotal').textContent=s.total;
+  $('#draftReview').textContent=s.review;
+  const q=($('#masterlistSearch')?.value||'').trim().toLowerCase();
+  const box=$('#masterlistPreview');if(!box)return;
+  box.innerHTML='';
+  draft.filter(a=>!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q)).forEach(a=>{
+    const d=document.createElement('div');d.className='attendee-row masterlist-row';
+    d.innerHTML='<div><strong>'+escapeHtml(a.name)+'</strong><small>'+escapeHtml(a.id)+' · '+(a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION')+(a.needsReview?' · ⚠ Needs review':'')+'</small></div><span class="draft-mini">DRAFT</span>';
+    box.appendChild(d);
+  });
+}
+$('#masterlistSearch')?.addEventListener('input',renderMasterlist);
+
+function applyDraftAttendees(incoming,label='Updated draft'){
+  const generated=structuredClone(incoming);
+  const old=state.attendees||[];
+  const oldBySource=new Map(old.filter(a=>a.sourceKey).map(a=>[a.sourceKey,a]));
+  const oldByName=new Map(old.filter(a=>a.draftStatus!=='REMOVED').map(a=>[samePersonKey(a),a]));
+  const used=new Set();
+  const matchedOld=new Set();
+
+  generated.forEach(g=>{
+    const match=oldBySource.get(g.sourceKey)||oldByName.get(samePersonKey(g));
+    if(match){
+      matchedOld.add(match);
+      g.id=match.id;
+      g.checkedIn=!!match.checkedIn;
+      g.claims=match.claims||{};
+      if(match.qrReleased)g.qrReleased=match.qrReleased;
+    }
+    g.id=nextFreeId(g.id,g.type,used);
+    g.draftStatus='ACTIVE';g.inactive=false;
+  });
+
+  const patientByFamily=new Map(generated.filter(a=>a.type==='PATIENT').map(a=>[a.familyKey,a.id]));
+  generated.forEach(a=>{if(a.type==='COMPANION')a.linkedPatient=patientByFamily.get(a.familyKey)||''});
+
+  const removed=old.filter(a=>a.source==='DRAFT_MASTERLIST'&&!matchedOld.has(a)&&!generated.some(g=>g.sourceKey===a.sourceKey))
+    .map(a=>({...a,draftStatus:'REMOVED',inactive:true}));
+
+  const manual=old.filter(a=>{
+    if(a.source==='DRAFT_MASTERLIST')return false;
+    if(LEGACY_DEMO_IDS.has(a.id)&&LEGACY_DEMO_NAMES.has(normName(a.name)))return false;
+    return true;
+  }).map(a=>{
+    if(used.has(a.id))a={...a,id:nextFreeId('',a.type,used)};
+    else used.add(a.id);
+    return a;
+  });
+
+  state.attendees=[...generated,...removed,...manual];
+  state.masterlist={status:'DRAFT',source:label,importedAt:new Date().toISOString(),activeCount:generated.length,removedCount:removed.length};
+  audit('MASTERLIST_IMPORT','',label+' · '+generated.length+' active · '+removed.length+' removed');
+  saveState();
+  const s=summarizeDraft(generated);
+  $('#masterlistMessage').textContent='✓ Draft applied: '+s.patients+' patients + '+s.companions+' companions = '+s.total+' active attendees. Existing matches kept their QR IDs.';
+  $('#masterlistMessage').style.color='var(--ok)';
+}
+$('#applyDraftBtn')?.addEventListener('click',()=>{
+  const s=summarizeDraft(sampleAttendees);
+  if(confirm('Apply the current DRAFT masterlist?\\n\\n'+s.patients+' patients + '+s.companions+' companions = '+s.total+' attendees.\\n\\nThis is still editable later.'))applyDraftAttendees(sampleAttendees,'Current Google Sheet Sheet1 snapshot');
+});
+
+function parseCsv(text){
+  const rows=[];let row=[],cell='',quoted=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch==='"'&&text[i+1]==='"'){cell+='"';i++}
+      else if(ch==='"')quoted=false;
+      else cell+=ch;
+    }else{
+      if(ch==='"')quoted=true;
+      else if(ch===','){row.push(cell);cell=''}
+      else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell=''}
+      else if(ch!=='\r')cell+=ch;
+    }
+  }
+  row.push(cell);if(row.some(x=>String(x).trim()))rows.push(row);
+  return rows;
+}
+function csvToDraftRows(matrix){
+  if(!matrix.length)return[];
+  const header=matrix[0].map(x=>String(x||'').trim());
+  const rawForm=header.some(x=>x.toUpperCase().includes("PATIENT'S FULL NAME"));
+  if(rawForm){
+    const idx=(needle)=>header.findIndex(h=>h.toLowerCase().includes(needle.toLowerCase()));
+    const p=idx("patient's full name"),nick=idx('nickname'),who=idx('who will be participating'),cnt=idx('# of companions'),names=idx('name/s of companion');
+    return matrix.slice(1).filter(r=>String(r[p]||'').trim()).map((r,i)=>({
+      n:String(i+1),patient:r[p],nickname:nick>=0?r[nick]:'',patientCount:/\bpatient\b/i.test(String(r[who]||''))?1:0,
+      companionCount:cnt>=0?countVal(r[cnt]):0,companions:names>=0?r[names]:''
+    }));
+  }
+  return matrix.slice(1).filter(r=>String(r[1]||'').trim()).map((r,i)=>({
+    n:String(r[0]||i+1),patient:r[1],nickname:r[2]||'',companions:r[6]||'',
+    patientCount:countVal(r[7]),companionCount:countVal(r[8]),confirmed:r[11]||''
+  }));
+}
+$('#masterlistCsvInput')?.addEventListener('change',async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  try{
+    const rows=csvToDraftRows(parseCsv(await f.text()));
+    if(!rows.length)throw Error('No masterlist rows found.');
+    const attendees=draftRowsToAttendees(rows),s=summarizeDraft(attendees);
+    const review=attendees.filter(a=>a.needsReview).length;
+    const ok=confirm('Updated DRAFT found:\\n\\n'+s.patients+' patients\\n'+s.companions+' companions\\n'+s.total+' total\\n'+review+' records need review\\n\\nApply this updated draft?');
+    if(ok)applyDraftAttendees(attendees,'Imported CSV: '+f.name);
+    else{$('#masterlistMessage').textContent='Import cancelled. No attendee data was changed.';$('#masterlistMessage').style.color='var(--muted)'}
+  }catch(err){
+    $('#masterlistMessage').textContent='CSV import failed: '+err.message;
+    $('#masterlistMessage').style.color='var(--danger)';
+  }finally{e.target.value=''}
+});
+
 showApp();renderAll();
 
 
