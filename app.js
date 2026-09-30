@@ -423,7 +423,44 @@ $('#masterlistCsvInput')?.addEventListener('change',async e=>{
   }finally{e.target.value=''}
 });
 
+
+
+const NEW_FEATURE_SEEN_KEY='pdw2027_seen_features_v1';
+
+function getSeenFeatures(){
+  try{
+    const v=JSON.parse(localStorage.getItem(NEW_FEATURE_SEEN_KEY)||'[]');
+    return Array.isArray(v)?v:[];
+  }catch{return[]}
+}
+function markFeatureSeen(key){
+  if(!key)return;
+  const seen=new Set(getSeenFeatures());
+  seen.add(key);
+  localStorage.setItem(NEW_FEATURE_SEEN_KEY,JSON.stringify([...seen]));
+}
+function refreshNewFeatureHighlights(){
+  const seen=new Set(getSeenFeatures());
+  document.querySelectorAll('[data-new-feature]').forEach(el=>{
+    const key=el.dataset.newFeature;
+    const isSeen=seen.has(key);
+    el.classList.toggle('new-feature-highlight',!isSeen);
+    const badge=el.querySelector('.new-feature-badge');
+    if(badge)badge.hidden=isSeen;
+  });
+}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-new-feature]');
+  if(!el)return;
+  const key=el.dataset.newFeature;
+  markFeatureSeen(key);
+  el.classList.remove('new-feature-highlight');
+  const badge=el.querySelector('.new-feature-badge');
+  if(badge)badge.hidden=true;
+});
+
 showApp();renderAll();
+refreshNewFeatureHighlights();
 
 
 function fitLoginToScreen(){
