@@ -93,7 +93,7 @@ function draftRowsToAttendees(rows){
       out.push({
         id:'PDW-'+base,name:String(r.patient||'').trim(),nickname:String(r.nickname||'').trim(),
         type:'PATIENT',linkedPatient:'',checkedIn:false,claims:{},
-        source:'DRAFT_MASTERLIST',sourceKey:'P:'+normName(r.patient),familyKey,
+        source:'DRAFT_MASTERLIST',sourceKey:'P:'+normName(r.patient),familyKey,registrantName:String(r.patient||'').trim(),
         draftStatus:'ACTIVE',needsReview:comp.review
       });
     }
@@ -102,7 +102,7 @@ function draftRowsToAttendees(rows){
         id:'COM-'+base+'-'+String.fromCharCode(65+j),name,type:'COMPANION',
         linkedPatient:patientCount>0?'PDW-'+base:'',checkedIn:false,claims:{},
         source:'DRAFT_MASTERLIST',sourceKey:'C:'+normName(r.patient)+':'+normName(name),
-        familyKey,draftStatus:'ACTIVE',needsReview:comp.review
+        familyKey,registrantName:String(r.patient||'').trim(),draftStatus:'ACTIVE',needsReview:comp.review
       });
     });
   });
@@ -328,7 +328,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=10',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=11',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
@@ -353,24 +353,196 @@ function summarizeDraft(list){
     review:active.filter(a=>a.needsReview).length
   };
 }
+let currentReviewFamilyKey='';
+
+function activeAttendees(){
+  return state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive);
+}
+function reviewFamilies(){
+  const map=new Map();
+  activeAttendees().filter(a=>a.needsReview).forEach(a=>{
+    const key=a.familyKey||('F:'+normName(a.registrantName||a.name));
+    if(!map.has(key))map.set(key,[]);
+    map.get(key).push(a);
+  });
+  return [...map.entries()];
+}
+function familyDisplayName(key,members){
+  const patient=members.find(a=>a.type==='PATIENT');
+  return patient?.registrantName||patient?.name||members[0]?.registrantName||key.replace(/^F:/,'').replace(/\b\w/g,c=>c.toUpperCase());
+}
+function renderNeedsReview(){
+  const list=$('#needsReviewList'),families=reviewFamilies();
+  if($('#reviewCountBadge'))$('#reviewCountBadge').textContent=families.length;
+  if(!list)return;
+  list.innerHTML='';
+  if(!families.length){
+    list.innerHTML='<p class="muted">✓ No unresolved review items.</p>';
+    return;
+  }
+  families.forEach(([key,members])=>{
+    const patient=members.find(a=>a.type==='PATIENT');
+    const companions=members.filter(a=>a.type==='COMPANION');
+    const d=document.createElement('div');d.className='attendee-row review-row';
+    d.innerHTML='<div><strong>'+escapeHtml(familyDisplayName(key,members))+'</strong><small>'+
+      (patient?'Patient attending':'No patient record')+' · '+companions.length+' companion'+(companions.length===1?'':'s')+
+      '<br>⚠ Please verify this family record before finalizing.</small></div>'+
+      '<button class="secondary review-family-btn">Review</button>';
+    d.querySelector('button').onclick=()=>openFamilyReview(key);
+    list.appendChild(d);
+  });
+}
+function openFamilyReview(key){
+  if(!can('masterlist'))return;
+  currentReviewFamilyKey=key;
+  const members=activeAttendees().filter(a=>(a.familyKey||('F:'+normName(a.registrantName||a.name)))===key);
+  const patient=members.find(a=>a.type==='PATIENT');
+  const companions=members.filter(a=>a.type==='COMPANION');
+  $('#reviewFamilyId').textContent=key;
+  $('#reviewPatientName').value=familyDisplayName(key,members);
+  $('#reviewPatientPresent').checked=!!patient;
+  $('#reviewCompanionNames').value=companions.map(a=>a.name).join('\n');
+  $('#familyReviewDialog').showModal();
+}
+$('#closeFamilyReview')?.addEventListener('click',()=>$('#familyReviewDialog').close());
+$('#reviewIssuesBtn')?.addEventListener('click',()=>{
+  $('#needsReviewSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+$('#familyReviewForm')?.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!can('masterlist')||!currentReviewFamilyKey)return;
+  const key=currentReviewFamilyKey;
+  const all=state.attendees;
+  const oldMembers=all.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(a.familyKey||('F:'+normName(a.registrantName||a.name)))===key);
+  const oldPatient=oldMembers.find(a=>a.type==='PATIENT');
+  const oldCompanions=oldMembers.filter(a=>a.type==='COMPANION');
+  const registrantName=$('#reviewPatientName').value.trim()||familyDisplayName(key,oldMembers);
+  const patientPresent=$('#reviewPatientPresent').checked;
+  const companionNames=$('#reviewCompanionNames').value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+
+  const usedIds=new Set(activeAttendees().filter(a=>!oldMembers.includes(a)).map(a=>a.id));
+  const rebuilt=[];
+
+  let patient=null;
+  if(patientPresent){
+    patient=oldPatient?{...oldPatient}:{id:'',name:registrantName,type:'PATIENT',linkedPatient:'',checkedIn:false,claims:{},source:'DRAFT_MASTERLIST'};
+    patient.name=registrantName;
+    patient.registrantName=registrantName;
+    patient.familyKey=key;
+    patient.sourceKey=patient.sourceKey||('P:'+normName(registrantName));
+    patient.needsReview=false;patient.draftStatus='ACTIVE';patient.inactive=false;
+    patient.id=nextFreeId(patient.id||'', 'PATIENT', usedIds);
+    rebuilt.push(patient);
+  }
+
+  const remaining=[...oldCompanions];
+  companionNames.forEach((name,i)=>{
+    let match=remaining.find(a=>normName(a.name)===normName(name));
+    if(match)remaining.splice(remaining.indexOf(match),1);
+    else match=remaining.shift();
+    const c=match?{...match}:{id:'',type:'COMPANION',checkedIn:false,claims:{},source:'DRAFT_MASTERLIST'};
+    c.name=name;c.type='COMPANION';c.familyKey=key;c.registrantName=registrantName;
+    c.linkedPatient=patient?.id||'';
+    c.sourceKey='C:'+normName(registrantName)+':'+normName(name);
+    c.needsReview=false;c.draftStatus='ACTIVE';c.inactive=false;
+    const preferred=c.id||(patient?.id?('COM-'+patient.id.replace('PDW-','')+'-'+String.fromCharCode(65+i)):'');
+    c.id=nextFreeId(preferred,'COMPANION',usedIds);
+    rebuilt.push(c);
+  });
+
+  oldMembers.forEach(a=>{
+    const kept=rebuilt.some(b=>b.id===a.id);
+    if(!kept){
+      const original=state.attendees.find(x=>x===a||x.id===a.id);
+      if(original){original.draftStatus='REMOVED';original.inactive=true;original.needsReview=false}
+    }
+  });
+  rebuilt.forEach(b=>{
+    const ix=state.attendees.findIndex(a=>a.id===b.id);
+    if(ix>=0)state.attendees[ix]=b; else state.attendees.push(b);
+  });
+
+  state.masterlist={...(state.masterlist||{}),status:'DRAFT',reviewedAt:new Date().toISOString()};
+  audit('MASTERLIST_REVIEW',patient?.id||rebuilt[0]?.id||'',registrantName+' family reviewed');
+  saveState();
+  $('#familyReviewDialog').close();
+  currentReviewFamilyKey='';
+  renderMasterlist();
+});
+
 function renderMasterlist(){
-  const draft=sampleAttendees;
-  const qrBtn=$('#downloadAllQrBtn');if(qrBtn){const final=isMasterlistFinalized();qrBtn.disabled=!final;qrBtn.textContent=final?'⬇ DOWNLOAD ALL QR PASSES':'🔒 DOWNLOAD ALL QR PASSES';refreshNewFeatureHighlights()}
+  const draft=activeAttendees();
+  const final=isMasterlistFinalized();
+  const families=reviewFamilies();
+  const pill=$('#masterlistStatusPill');
+  if(pill){
+    pill.textContent=final?'FINAL MASTERLIST':'DRAFT — NOT FINAL';
+    pill.classList.toggle('final-pill',final);
+    pill.classList.toggle('draft-pill',!final);
+  }
+  const qrBtn=$('#downloadAllQrBtn');
+  if(qrBtn){
+    qrBtn.disabled=!final;
+    qrBtn.textContent=final?'⬇ DOWNLOAD ALL QR PASSES':'🔒 DOWNLOAD ALL QR PASSES';
+  }
+  const finalizeBtn=$('#finalizeMasterlistBtn');
+  if(finalizeBtn){
+    finalizeBtn.disabled=final||families.length>0;
+    finalizeBtn.textContent=families.length>0?'🔒 RESOLVE '+families.length+' REVIEW ITEM'+(families.length===1?'':'S'):'✓ FINALIZE MASTERLIST';
+  }
+  $('#reopenDraftBtn')?.classList.toggle('hidden',!final||!can('masterlist'));
+  if($('#applyDraftBtn'))$('#applyDraftBtn').disabled=final;
+  if($('#masterlistCsvInput'))$('#masterlistCsvInput').disabled=final;
+  if($('#importCsvLabel'))$('#importCsvLabel').classList.toggle('is-disabled',final);
+
   const s=summarizeDraft(draft);
   $('#draftPatients').textContent=s.patients;
   $('#draftCompanions').textContent=s.companions;
   $('#draftTotal').textContent=s.total;
-  $('#draftReview').textContent=s.review;
+  $('#draftReview').textContent=families.length;
+  renderNeedsReview();
+
   const q=($('#masterlistSearch')?.value||'').trim().toLowerCase();
   const box=$('#masterlistPreview');if(!box)return;
   box.innerHTML='';
   draft.filter(a=>!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q)).forEach(a=>{
     const d=document.createElement('div');d.className='attendee-row masterlist-row';
-    d.innerHTML='<div><strong>'+escapeHtml(a.name)+'</strong><small>'+escapeHtml(a.id)+' · '+(a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION')+(a.needsReview?' · ⚠ Needs review':'')+'</small></div><span class="draft-mini">DRAFT</span>';
+    d.innerHTML='<div><strong>'+escapeHtml(a.name)+'</strong><small>'+escapeHtml(a.id)+' · '+(a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION')+(a.needsReview?' · ⚠ Needs review':'')+'</small></div><span class="'+(final?'final-mini':'draft-mini')+'">'+(final?'FINAL':'DRAFT')+'</span>';
     box.appendChild(d);
   });
+  applyRoleAccess();
+  refreshNewFeatureHighlights();
 }
 $('#masterlistSearch')?.addEventListener('input',renderMasterlist);
+
+$('#finalizeMasterlistBtn')?.addEventListener('click',()=>{
+  if(!can('masterlist'))return;
+  const families=reviewFamilies();
+  if(families.length){
+    $('#masterlistMessage').textContent='Resolve all Needs Review items before finalizing.';
+    $('#masterlistMessage').style.color='var(--danger)';
+    $('#needsReviewSection')?.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  const active=activeAttendees(),patients=active.filter(a=>a.type==='PATIENT').length,companions=active.filter(a=>a.type==='COMPANION').length;
+  if(!confirm('FINALIZE MASTERLIST?\n\n'+patients+' patients + '+companions+' companions = '+active.length+' attendees.\n\nQR sharing and download will be unlocked.'))return;
+  state.masterlist={...(state.masterlist||{}),status:'FINAL',finalizedAt:new Date().toISOString(),finalizedBy:staff,activeCount:active.length};
+  audit('MASTERLIST_FINALIZED','',active.length+' attendees finalized');
+  saveState();
+  $('#masterlistMessage').textContent='✓ Masterlist finalized. QR release is now unlocked for Admin and QR Release staff.';
+  $('#masterlistMessage').style.color='var(--ok)';
+});
+
+$('#reopenDraftBtn')?.addEventListener('click',()=>{
+  if(!can('masterlist'))return;
+  if(!confirm('Reopen the FINAL masterlist as DRAFT?\n\nQR sharing and batch downloads will be locked again until you finalize it.'))return;
+  state.masterlist={...(state.masterlist||{}),status:'DRAFT',reopenedAt:new Date().toISOString(),reopenedBy:staff};
+  audit('MASTERLIST_REOPENED','','Final masterlist reopened as draft');
+  saveState();
+  $('#masterlistMessage').textContent='Masterlist reopened as DRAFT. QR release is locked again.';
+  $('#masterlistMessage').style.color='var(--danger)';
+});
 
 function applyDraftAttendees(incoming,label='Updated draft'){
   const generated=structuredClone(incoming);
@@ -418,6 +590,7 @@ function applyDraftAttendees(incoming,label='Updated draft'){
   $('#masterlistMessage').style.color='var(--ok)';
 }
 $('#applyDraftBtn')?.addEventListener('click',()=>{
+  if(!can('masterlist')||isMasterlistFinalized())return;
   const s=summarizeDraft(sampleAttendees);
   if(confirm('Apply the current DRAFT masterlist?\\n\\n'+s.patients+' patients + '+s.companions+' companions = '+s.total+' attendees.\\n\\nThis is still editable later.'))applyDraftAttendees(sampleAttendees,'Current Google Sheet Sheet1 snapshot');
 });
@@ -488,6 +661,7 @@ $('#downloadAllQrBtn')?.addEventListener('click',async()=>{
 });
 
 $('#masterlistCsvInput')?.addEventListener('change',async e=>{
+  if(!can('masterlist')||isMasterlistFinalized()){e.target.value='';return}
   const f=e.target.files?.[0];if(!f)return;
   try{
     const rows=csvToDraftRows(parseCsv(await f.text()));
