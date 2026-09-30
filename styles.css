@@ -10,8 +10,8 @@
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .login-simple{position:relative;overflow:hidden;display:block;max-width:none;margin:0;padding:0;background:linear-gradient(180deg,#fffdf8 0%,#fbf7eb 72%,#fffaf0 100%)}
 .login-shell{position:relative;z-index:2;width:min(680px,100%);min-height:100svh;margin:0 auto;padding:24px 18px 112px;display:flex;flex-direction:column;justify-content:center}
-.login-brand-simple{text-align:center;padding:0 8px 18px}
-.pdw-logo{display:block;width:clamp(138px,30vw,190px);height:auto;aspect-ratio:1/1;object-fit:contain;margin:0 auto 14px;filter:drop-shadow(0 6px 10px rgba(23,71,54,.08))}
+.login-brand-simple{text-align:center;padding:18px 8px 18px}
+
 .event-title{display:flex;flex-direction:column;align-items:center;line-height:.88;margin-top:2px}
 .event-title span{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.6rem,9.4vw,4.5rem);font-weight:700;letter-spacing:-.045em;color:#0d4a37;white-space:nowrap}
 .event-title strong{font-family:Georgia,"Times New Roman",serif;font-size:clamp(3.25rem,12.5vw,5.5rem);font-weight:500;color:#d91f24;line-height:.9;margin-top:4px}
@@ -42,12 +42,12 @@
 @media(max-width:800px){
   .login-simple{padding:0}
   .login-shell{padding:18px 16px 104px;justify-content:flex-start}
-  .login-brand-simple{padding-top:10px}
+  .login-brand-simple{padding-top:18px}
   .login-panel-simple{width:100%;margin:0 auto}
 }
 @media(max-width:480px){
   .login-shell{min-height:100svh;padding:12px 14px 88px}
-  .pdw-logo{width:150px;margin-bottom:8px}
+  
   .event-title span{font-size:2.65rem}
   .event-title strong{font-size:3.55rem}
   .system-name{font-size:.7rem;letter-spacing:.17em}
