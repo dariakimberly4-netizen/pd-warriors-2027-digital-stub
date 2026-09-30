@@ -46,3 +46,10 @@ Do not change its:
 - spacing, card shape, or overall mobile composition
 
 Future features must be added without redesigning this login unless the project owner explicitly requests an unlock or redesign.
+
+
+## Approved Master Attendee Registration Design — LOCKED
+
+The v21 Attendee Registration screen is the approved master design. Do not change its sizing, proportions, typography, colors, spacing, attendee-card layout, header, navigation, search field, or Add Attendee placement unless the project owner explicitly requests an unlock/redesign.
+
+Functional changes may be added without changing the approved visual design. As of v22, attendee cards are tappable for Registration/Admin record review and editing, and for QR Release the card opens the QR pass.
