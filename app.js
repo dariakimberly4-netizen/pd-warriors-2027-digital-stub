@@ -110,7 +110,7 @@ function draftRowsToAttendees(rows){
 }
 const sampleAttendees=draftRowsToAttendees(CURRENT_DRAFT_ROWS);
 
-function newState(){return{version:2,attendees:structuredClone(sampleAttendees),audit:[],raffleWinners:[],masterlist:{status:'DRAFT',source:'Built-in Sheet1 snapshot',importedAt:null},updatedAt:new Date().toISOString()}}
+function newState(){const t=new Date().toISOString();return{version:2,attendees:structuredClone(sampleAttendees),audit:[],raffleWinners:[],masterlist:{status:'DRAFT',source:'Built-in Sheet1 snapshot',importedAt:null,_updatedAt:t},updatedAt:t}}
 let state=loadState();
 let current=null;
 const ROLE_UI_BUILD='v19';
@@ -125,8 +125,168 @@ function can(action){return !!rolePerm()[action]}
 function canClaim(kind){return (rolePerm().claims||[]).includes(kind)}
 let scanStream=null,scanTimer=null;
 
+/* ===== SHARED LOCAL EVENT SERVER v26 =====
+   When opened from http://<laptop-ip>:8787, all staff devices use one
+   laptop database. GitHub Pages continues to work as the emergency
+   independent offline copy. */
+const LOCAL_SERVER_CANDIDATE=location.protocol==='http:'&&location.port==='8787';
+const SHARED_CLIENT_KEY='pdw2027_shared_client_id_v1';
+const sharedServer={
+  candidate:LOCAL_SERVER_CANDIDATE,
+  connected:false,
+  revision:-1,
+  pending:false,
+  syncing:false,
+  pollTimer:null,
+  syncTimer:null,
+  lastError:''
+};
+function sharedClientId(){
+  let id=localStorage.getItem(SHARED_CLIENT_KEY);
+  if(!id){
+    id=(crypto.randomUUID?.()||('client-'+Date.now()+'-'+Math.random().toString(16).slice(2)));
+    localStorage.setItem(SHARED_CLIENT_KEY,id);
+  }
+  return id;
+}
+async function sharedFetch(path,options={}){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),3000);
+  try{
+    const res=await fetch(path,{
+      cache:'no-store',
+      ...options,
+      headers:{'Content-Type':'application/json',...(options.headers||{})},
+      signal:controller.signal
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data?.message||('Server error '+res.status));
+    return data;
+  }finally{clearTimeout(timer)}
+}
+function applySharedState(next,revision){
+  if(!next||!Array.isArray(next.attendees))return;
+  const currentId=current?.id||'';
+  state=next;
+  sharedServer.revision=Number(revision??sharedServer.revision);
+  localStorage.setItem(APP_KEY,JSON.stringify(state));
+  if(currentId)current=byId(currentId)||null;
+  renderAll();
+}
+async function initSharedServer(){
+  if(!sharedServer.candidate)return;
+  try{
+    const health=await sharedFetch('/api/health');
+    if(!health?.ok)throw new Error('Local server unavailable');
+    sharedServer.connected=true;
+    sharedServer.revision=Number(health.revision||0);
+
+    const snap=await sharedFetch('/api/state');
+    if(snap.empty){
+      const boot=await sharedFetch('/api/bootstrap',{
+        method:'POST',
+        body:JSON.stringify({state,staff:staff||'UNKNOWN',clientId:sharedClientId()})
+      });
+      if(boot?.state)applySharedState(boot.state,boot.revision);
+    }else if(snap?.state){
+      applySharedState(snap.state,snap.revision);
+    }
+    sharedServer.pending=false;
+    updateNetwork();
+    startSharedPolling();
+  }catch(err){
+    sharedServer.connected=false;
+    sharedServer.lastError=err.message;
+    updateNetwork();
+    startSharedPolling();
+  }
+}
+function startSharedPolling(){
+  if(!sharedServer.candidate||sharedServer.pollTimer)return;
+  sharedServer.pollTimer=setInterval(async()=>{
+    if(document.hidden)return;
+    try{
+      if(sharedServer.pending){
+        await syncStateToServer('RECONNECT');
+        return;
+      }
+      const snap=await sharedFetch('/api/state');
+      sharedServer.connected=true;
+      sharedServer.lastError='';
+      if(snap?.state&&Number(snap.revision)!==sharedServer.revision){
+        applySharedState(snap.state,snap.revision);
+      }else{
+        sharedServer.revision=Number(snap.revision??sharedServer.revision);
+      }
+      updateNetwork();
+    }catch(err){
+      sharedServer.connected=false;
+      sharedServer.lastError=err.message;
+      updateNetwork();
+    }
+  },1500);
+}
+function queueServerSync(reason='SAVE'){
+  if(!sharedServer.candidate)return;
+  sharedServer.pending=true;
+  clearTimeout(sharedServer.syncTimer);
+  sharedServer.syncTimer=setTimeout(()=>syncStateToServer(reason),120);
+}
+async function syncStateToServer(reason='SAVE'){
+  if(!sharedServer.candidate||sharedServer.syncing)return null;
+  sharedServer.syncing=true;
+  try{
+    const out=await sharedFetch('/api/sync',{
+      method:'POST',
+      body:JSON.stringify({
+        state,
+        staff:staff||'UNKNOWN',
+        clientId:sharedClientId(),
+        reason
+      })
+    });
+    sharedServer.connected=true;
+    sharedServer.pending=false;
+    sharedServer.lastError='';
+    if(out?.state)applySharedState(out.state,out.revision);
+    updateNetwork();
+    return out;
+  }catch(err){
+    sharedServer.connected=false;
+    sharedServer.pending=true;
+    sharedServer.lastError=err.message;
+    updateNetwork();
+    return null;
+  }finally{sharedServer.syncing=false}
+}
+async function sharedAction(action,payload={}){
+  if(!sharedServer.candidate||!sharedServer.connected)return null;
+  try{
+    const out=await sharedFetch('/api/action',{
+      method:'POST',
+      body:JSON.stringify({
+        action,
+        ...payload,
+        staff:staff||'UNKNOWN',
+        clientId:sharedClientId()
+      })
+    });
+    sharedServer.connected=true;
+    sharedServer.lastError='';
+    if(out?.state)applySharedState(out.state,out.revision);
+    updateNetwork();
+    return out;
+  }catch(err){
+    sharedServer.connected=false;
+    sharedServer.pending=true;
+    sharedServer.lastError=err.message;
+    updateNetwork();
+    return null;
+  }
+}
+
 function loadState(){try{const s=JSON.parse(localStorage.getItem(APP_KEY));return s&&Array.isArray(s.attendees)?s:newState()}catch{return newState()}}
-function saveState(){state.updatedAt=new Date().toISOString();localStorage.setItem(APP_KEY,JSON.stringify(state));renderAll()}
+function saveState(reason='SAVE'){state.updatedAt=new Date().toISOString();localStorage.setItem(APP_KEY,JSON.stringify(state));renderAll();queueServerSync(reason)}
 function audit(action,attendeeId='',detail=''){state.audit.push({id:crypto.randomUUID?.()||String(Date.now()+Math.random()),action,attendeeId,detail,staff:staff||'UNKNOWN',device:navigator.userAgent.slice(0,80),time:new Date().toISOString()})}
 function nowText(iso){return new Date(iso).toLocaleString()}
 function cleanCode(v){return String(v||'').trim().toUpperCase().replace(/^PDW2027:/,'')}
@@ -234,7 +394,18 @@ $('#loginForm').addEventListener('submit',e=>{e.preventDefault();const u=$('#use
 $$('[data-demo]').forEach(b=>b.addEventListener('click',()=>{$('#username').value=b.dataset.demo;$('#password').value=DEMO_PASS;$('#loginForm').requestSubmit()}));
 $('#logoutBtn').addEventListener('click',()=>{staff='';sessionStorage.removeItem(STAFF_KEY);current=null;showApp()});
 
-function updateNetwork(){const online=navigator.onLine;$('#networkPill').textContent=online?'● Online — offline copy ready after install':'● Offline mode';$('#networkPill').style.background=online?'#edf4ef':'#f6ead0'}
+function updateNetwork(){
+  const pill=$('#networkPill');
+  if(!pill)return;
+  if(sharedServer.candidate){
+    pill.textContent=sharedServer.connected?'● Shared local server connected':'● Local server disconnected — emergency local copy';
+    pill.style.background=sharedServer.connected?'#edf4ef':'#f6ead0';
+    return;
+  }
+  const online=navigator.onLine;
+  pill.textContent=online?'● Online — offline copy ready after install':'● Offline mode';
+  pill.style.background=online?'#edf4ef':'#f6ead0';
+}
 addEventListener('online',updateNetwork);addEventListener('offline',updateNetwork);updateNetwork();
 
 $('.tabs')?.addEventListener('click',e=>{
@@ -243,13 +414,28 @@ $('.tabs')?.addEventListener('click',e=>{
   activateView(b.dataset.view);
 });
 
-function selectAttendee(a){
+async function selectAttendee(a){
   if(a?.draftStatus==='REMOVED'||a?.inactive){alert('This attendee is inactive in the current draft masterlist.');return}
-  current=a;
-  if(!a.checkedIn){a.checkedIn=true;audit('CHECK_IN',a.id,'Checked in from claim/search screen');saveState()}
+  let chosen=a;
+  if(!chosen.checkedIn){
+    const remote=await sharedAction('CHECK_IN',{attendeeId:chosen.id});
+    if(remote){
+      if(!remote.ok){alert(remote.message||'Could not check in attendee.');return}
+      chosen=byId(chosen.id)||chosen;
+    }else{
+      chosen.checkedIn=true;
+      audit('CHECK_IN',chosen.id,'Checked in from claim/search screen');
+      saveState('CHECK_IN_OFFLINE');
+    }
+  }
+  current=byId(chosen.id)||chosen;
   $('#attendeeCard').classList.remove('hidden');
-  $('#attendeeName').textContent=a.name;$('#attendeeId').textContent=a.id;$('#attendeeType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';
-  renderClaimButtons();$('#claimMessage').textContent='';window.scrollTo({top:$('#attendeeCard').offsetTop-10,behavior:'smooth'});
+  $('#attendeeName').textContent=current.name;
+  $('#attendeeId').textContent=current.id;
+  $('#attendeeType').textContent=current.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';
+  renderClaimButtons();
+  $('#claimMessage').textContent='';
+  window.scrollTo({top:$('#attendeeCard').offsetTop-10,behavior:'smooth'});
 }
 
 function renderClaimButtons(){
@@ -268,7 +454,44 @@ function renderClaimButtons(){
   });
 }
 
-function claim(kind){if(!current)return;if(!canClaim(kind)){message('This staff role cannot claim '+kind+'.',true);return}if(!entitlements(current).includes(kind)){message('Not entitled to '+kind,true);return}const old=current.claims[kind];if(old){$('#claimMessage').textContent=`⚠ ALREADY CLAIMED — ${nowText(old.time)} by ${old.staff}`;$('#claimMessage').style.color='var(--danger)';return}current.claims[kind]={time:new Date().toISOString(),staff};audit('CLAIM_'+kind,current.id,kind+' claimed');saveState();renderClaimButtons();$('#claimMessage').textContent=`✓ ${kind} CLAIM SUCCESSFUL — ${current.name}`;$('#claimMessage').style.color='var(--ok)'}
+async function claim(kind){
+  if(!current)return;
+  if(!canClaim(kind)){message('This staff role cannot claim '+kind+'.',true);return}
+  if(!entitlements(current).includes(kind)){message('Not entitled to '+kind,true);return}
+  const old=current.claims?.[kind];
+  if(old){
+    $('#claimMessage').textContent='⚠ ALREADY CLAIMED — '+nowText(old.time)+' by '+old.staff;
+    $('#claimMessage').style.color='var(--danger)';
+    return;
+  }
+
+  const attendeeId=current.id;
+  const remote=await sharedAction('CLAIM',{attendeeId,kind});
+  if(remote){
+    current=byId(attendeeId)||current;
+    renderClaimButtons();
+    if(!remote.ok){
+      if(remote.code==='ALREADY_CLAIMED'&&remote.claim){
+        $('#claimMessage').textContent='⚠ ALREADY CLAIMED — '+nowText(remote.claim.time)+' by '+remote.claim.staff;
+      }else{
+        $('#claimMessage').textContent='⚠ '+(remote.message||('Unable to claim '+kind));
+      }
+      $('#claimMessage').style.color='var(--danger)';
+      return;
+    }
+    $('#claimMessage').textContent='✓ '+kind+' CLAIM SUCCESSFUL — '+current.name;
+    $('#claimMessage').style.color='var(--ok)';
+    return;
+  }
+
+  current.claims=current.claims||{};
+  current.claims[kind]={time:new Date().toISOString(),staff};
+  audit('CLAIM_'+kind,current.id,kind+' claimed');
+  saveState('CLAIM_'+kind+'_OFFLINE');
+  renderClaimButtons();
+  $('#claimMessage').textContent='✓ '+kind+' SAVED LOCALLY — will sync when the local server reconnects';
+  $('#claimMessage').style.color='var(--ok)';
+}
 function message(t,bad=false){$('#claimMessage').textContent=t;$('#claimMessage').style.color=bad?'var(--danger)':'var(--ok)'}
 
 function search(q){q=q.trim().toLowerCase();if(!q)return[];return state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive&&(a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))).slice(0,8)}
@@ -386,7 +609,7 @@ $('#attendeeList')?.addEventListener('pointerup',e=>{
 
 function nextId(type,linked){if(type==='PATIENT'){const nums=state.attendees.filter(a=>a.type==='PATIENT').map(a=>parseInt(a.id.match(/\d+/)?.[0]||0));return'PDW-'+String(Math.max(0,...nums)+1).padStart(4,'0')}const base=linked?.match(/PDW-(\d+)/)?.[1]||String(state.attendees.filter(a=>a.type==='COMPANION').length+1).padStart(4,'0');const siblings=state.attendees.filter(a=>a.type==='COMPANION'&&a.id.startsWith('COM-'+base)).length;return'COM-'+base+'-'+String.fromCharCode(65+siblings)}
 $('#addAttendeeBtn').onclick=openNewAttendee;$('#closeAttendeeDialog').onclick=()=>{editingAttendeeId='';$('#attendeeForm').reset();$('#attendeeDialog').close()};
-$('#attendeeForm').addEventListener('submit',e=>{
+$('#attendeeForm').addEventListener('submit',async e=>{
   e.preventDefault();
   if(!can('addAttendee'))return;
   const name=$('#newName').value.trim();
@@ -395,14 +618,30 @@ $('#attendeeForm').addEventListener('submit',e=>{
   if(!name)return;
 
   if(editingAttendeeId){
-    const a=byId(editingAttendeeId);
+    const id=editingAttendeeId;
+    const remote=await sharedAction('EDIT_ATTENDEE',{
+      attendeeId:id,
+      patch:{name,type,linkedPatient:linked}
+    });
+    if(remote){
+      if(!remote.ok){alert(remote.message||'Could not save attendee changes.');return}
+      editingAttendeeId='';
+      e.target.reset();
+      $('#attendeeDialog').close();
+      renderAttendeeList();
+      return;
+    }
+
+    const a=byId(id);
     if(!a)return;
     const before={name:a.name,type:a.type,linkedPatient:a.linkedPatient||''};
     a.name=name;
     a.type=type;
     a.linkedPatient=type==='COMPANION'?linked:'';
+    a.recordUpdatedAt=new Date().toISOString();
+    if(a.type!=='PATIENT'&&a.claims)delete a.claims.RAFFLE;
     audit('EDIT_ATTENDEE',a.id,JSON.stringify({before,after:{name:a.name,type:a.type,linkedPatient:a.linkedPatient}}));
-    saveState();
+    saveState('EDIT_ATTENDEE_OFFLINE');
     editingAttendeeId='';
     e.target.reset();
     $('#attendeeDialog').close();
@@ -410,17 +649,38 @@ $('#attendeeForm').addEventListener('submit',e=>{
     return;
   }
 
-  const a={id:nextId(type,linked),name,type,linkedPatient:type==='COMPANION'?linked:'',checkedIn:false,claims:{}};
+  const remote=await sharedAction('ADD_ATTENDEE',{
+    attendee:{name,type,linkedPatient:linked}
+  });
+  if(remote){
+    if(!remote.ok){alert(remote.message||'Could not add attendee.');return}
+    const created=byId(remote.attendeeId);
+    e.target.reset();
+    $('#attendeeDialog').close();
+    if(created&&can('qrRelease'))showPass(created);
+    else{activateView('attendees');renderAttendeeList()}
+    return;
+  }
+
+  const a={
+    id:nextId(type,linked),
+    name,
+    type,
+    linkedPatient:type==='COMPANION'?linked:'',
+    checkedIn:false,
+    claims:{},
+    source:'WALK_IN',
+    draftStatus:'ACTIVE',
+    inactive:false,
+    recordUpdatedAt:new Date().toISOString()
+  };
   state.attendees.push(a);
   audit('ADD_ATTENDEE',a.id,a.name);
-  saveState();
+  saveState('ADD_ATTENDEE_OFFLINE');
   e.target.reset();
   $('#attendeeDialog').close();
   if(can('qrRelease'))showPass(a);
-  else{
-    activateView('attendees');
-    renderAttendeeList();
-  }
+  else{activateView('attendees');renderAttendeeList()}
 });
 
 
@@ -501,7 +761,29 @@ $('#sharePassBtn').onclick=async()=>{
 function renderStats(){const checked=state.attendees.filter(a=>a.checkedIn).length;const count=k=>state.attendees.filter(a=>a.claims?.[k]).length;$('#statPresent').textContent=checked;$('#statSnack').textContent=count('SNACK');$('#statLunch').textContent=count('LUNCH');$('#statRaffle').textContent=count('RAFFLE')}
 function eligibleRaffle(){return state.attendees.filter(a=>a.type==='PATIENT'&&a.checkedIn&&a.draftStatus!=='REMOVED'&&!a.inactive)}
 function renderRaffle(){const pool=eligibleRaffle();$('#raffleEligibleCount').textContent=pool.length;const box=$('#rafflePool');box.innerHTML='';pool.forEach(a=>{const d=document.createElement('div');d.className='attendee-row';d.innerHTML=`<div><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small></div>`;box.appendChild(d)})}
-$('#drawRaffleBtn').onclick=()=>{if(!can('raffleDraw')){alert('This staff role cannot draw the raffle.');return}const pool=eligibleRaffle().filter(a=>!state.raffleWinners.some(w=>w.attendeeId===a.id));if(!pool.length){alert('No eligible unchecked winner available.');return}const a=pool[Math.floor(Math.random()*pool.length)];state.raffleWinners.push({attendeeId:a.id,name:a.name,time:new Date().toISOString(),staff});audit('RAFFLE_WINNER',a.id,a.name);saveState();const w=$('#raffleWinner');w.classList.remove('hidden');w.innerHTML=`<span>🎉 WINNER</span><strong>${escapeHtml(a.name)}</strong><small>${a.id}</small>`};
+$('#drawRaffleBtn').onclick=async()=>{
+  if(!can('raffleDraw')){alert('This staff role cannot draw the raffle.');return}
+
+  const remote=await sharedAction('RAFFLE_DRAW');
+  if(remote){
+    if(!remote.ok){alert(remote.message||'No eligible winner available.');return}
+    const winner=remote.winner;
+    const w=$('#raffleWinner');
+    w.classList.remove('hidden');
+    w.innerHTML='<span>🎉 WINNER</span><strong>'+escapeHtml(winner.name)+'</strong><small>'+winner.attendeeId+'</small>';
+    return;
+  }
+
+  const pool=eligibleRaffle().filter(a=>!state.raffleWinners.some(w=>w.attendeeId===a.id));
+  if(!pool.length){alert('No eligible unchecked winner available.');return}
+  const a=pool[Math.floor(Math.random()*pool.length)];
+  state.raffleWinners.push({attendeeId:a.id,name:a.name,time:new Date().toISOString(),staff});
+  audit('RAFFLE_WINNER',a.id,a.name);
+  saveState('RAFFLE_DRAW_OFFLINE');
+  const w=$('#raffleWinner');
+  w.classList.remove('hidden');
+  w.innerHTML='<span>🎉 WINNER</span><strong>'+escapeHtml(a.name)+'</strong><small>'+a.id+'</small>';
+};
 
 function downloadText(name,text,type='application/json'){const b=new Blob([text],{type});const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
 $('#exportJsonBtn').onclick=()=>{audit('EXPORT_BACKUP','','Manual backup');saveState();downloadText('PDW2027-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(state,null,2));$('#backupMessage').textContent='✓ Backup exported.'};
@@ -719,7 +1001,7 @@ $('#finalizeMasterlistBtn')?.addEventListener('click',()=>{
   }
   const active=activeAttendees(),patients=active.filter(a=>a.type==='PATIENT').length,companions=active.filter(a=>a.type==='COMPANION').length;
   if(!confirm('FINALIZE MASTERLIST?\n\n'+patients+' patients + '+companions+' companions = '+active.length+' attendees.\n\nQR sharing and download will be unlocked.'))return;
-  state.masterlist={...(state.masterlist||{}),status:'FINAL',finalizedAt:new Date().toISOString(),finalizedBy:staff,activeCount:active.length};
+  state.masterlist={...(state.masterlist||{}),status:'FINAL',finalizedAt:new Date().toISOString(),finalizedBy:staff,_updatedAt:new Date().toISOString(),activeCount:active.length};
   audit('MASTERLIST_FINALIZED','',active.length+' attendees finalized');
   saveState();
   $('#masterlistMessage').textContent='✓ Masterlist finalized. QR release is now unlocked for Admin and QR Release staff.';
@@ -729,7 +1011,7 @@ $('#finalizeMasterlistBtn')?.addEventListener('click',()=>{
 $('#reopenDraftBtn')?.addEventListener('click',()=>{
   if(!can('masterlist'))return;
   if(!confirm('Reopen the FINAL masterlist as DRAFT?\n\nQR sharing and batch downloads will be locked again until you finalize it.'))return;
-  state.masterlist={...(state.masterlist||{}),status:'DRAFT',reopenedAt:new Date().toISOString(),reopenedBy:staff};
+  state.masterlist={...(state.masterlist||{}),status:'DRAFT',reopenedAt:new Date().toISOString(),reopenedBy:staff,_updatedAt:new Date().toISOString()};
   audit('MASTERLIST_REOPENED','','Final masterlist reopened as draft');
   saveState();
   $('#masterlistMessage').textContent='Masterlist reopened as DRAFT. QR release is locked again.';
@@ -754,14 +1036,14 @@ function applyDraftAttendees(incoming,label='Updated draft'){
       if(match.qrReleased)g.qrReleased=match.qrReleased;
     }
     g.id=nextFreeId(g.id,g.type,used);
-    g.draftStatus='ACTIVE';g.inactive=false;
+    g.draftStatus='ACTIVE';g.inactive=false;g.recordUpdatedAt=new Date().toISOString();
   });
 
   const patientByFamily=new Map(generated.filter(a=>a.type==='PATIENT').map(a=>[a.familyKey,a.id]));
   generated.forEach(a=>{if(a.type==='COMPANION')a.linkedPatient=patientByFamily.get(a.familyKey)||''});
 
   const removed=old.filter(a=>a.source==='DRAFT_MASTERLIST'&&!matchedOld.has(a)&&!generated.some(g=>g.sourceKey===a.sourceKey))
-    .map(a=>({...a,draftStatus:'REMOVED',inactive:true}));
+    .map(a=>({...a,draftStatus:'REMOVED',inactive:true,recordUpdatedAt:new Date().toISOString()}));
 
   const manual=old.filter(a=>{
     if(a.source==='DRAFT_MASTERLIST')return false;
@@ -774,7 +1056,7 @@ function applyDraftAttendees(incoming,label='Updated draft'){
   });
 
   state.attendees=[...generated,...removed,...manual];
-  state.masterlist={status:'DRAFT',source:label,importedAt:new Date().toISOString(),activeCount:generated.length,removedCount:removed.length};
+  state.masterlist={status:'DRAFT',source:label,importedAt:new Date().toISOString(),activeCount:generated.length,removedCount:removed.length,_updatedAt:new Date().toISOString()};
   audit('MASTERLIST_IMPORT','',label+' · '+generated.length+' active · '+removed.length+' removed');
   saveState();
   const s=summarizeDraft(generated);
@@ -903,6 +1185,7 @@ document.addEventListener('click',e=>{
 
 showApp();renderAll();
 refreshNewFeatureHighlights();
+initSharedServer();
 
 
 function fitLoginToScreen(){
