@@ -958,3 +958,154 @@
   .phone-ui .role-login-grid button strong{font-size:15px!important}
   .phone-ui .role-icon{width:24px!important;height:24px!important;font-size:10px!important}
 }
+
+
+/* ===== READABLE LOGGED-IN MOBILE UI v20 =====
+   Does NOT alter the locked v17 login design. */
+.phone-ui #mainView{
+  max-width:none!important;
+  width:100%!important;
+  padding:calc(var(--p-gap,7px) * 1.4)!important;
+  font-size:var(--p-label,16px)!important;
+  line-height:1.45!important;
+}
+.phone-ui #mainView .app-header{
+  padding:calc(var(--p-gap,7px) * 1.2) 2px calc(var(--p-gap,7px) * 1.6)!important;
+  gap:var(--p-gap,7px)!important;
+  align-items:center!important;
+}
+.phone-ui #mainView .app-header .eyebrow{
+  font-size:var(--p-small,11px)!important;
+  line-height:1.2!important;
+  letter-spacing:.11em!important;
+  margin:0 0 4px!important;
+}
+.phone-ui #mainView .app-header h1{
+  font-size:calc(var(--p-label,16px) * 1.65)!important;
+  line-height:1.05!important;
+  margin:0!important;
+}
+.phone-ui #mainView .header-actions{
+  gap:var(--p-gap,7px)!important;
+}
+.phone-ui #mainView .staff-badge{
+  display:inline-flex!important;
+  font-size:calc(var(--p-small,11px) * 1.05)!important;
+  line-height:1.2!important;
+  padding:calc(var(--p-gap,7px) * 1.2) calc(var(--p-gap,7px) * 1.5)!important;
+  min-height:calc(var(--p-role-h,46px) * .86)!important;
+  align-items:center!important;
+}
+.phone-ui #mainView .header-actions .ghost{
+  min-height:calc(var(--p-role-h,46px) * .9)!important;
+  padding:calc(var(--p-gap,7px) * 1.1) calc(var(--p-gap,7px) * 1.5)!important;
+  font-size:var(--p-small,11px)!important;
+}
+.phone-ui #mainView .tabs{
+  gap:var(--p-gap,7px)!important;
+  margin-bottom:calc(var(--p-gap,7px) * 1.7)!important;
+}
+.phone-ui #mainView .tab{
+  min-height:calc(var(--p-role-h,46px) * 1.05)!important;
+  padding:calc(var(--p-gap,7px) * 1.3)!important;
+  font-size:var(--p-label,16px)!important;
+  font-weight:900!important;
+  border-radius:14px!important;
+}
+.phone-ui #mainView .panel{
+  padding:calc(var(--p-panel-pad,16px) * 1.05)!important;
+  border-radius:22px!important;
+}
+.phone-ui #mainView .section-title-row{
+  gap:calc(var(--p-gap,7px) * 1.2)!important;
+  align-items:center!important;
+}
+.phone-ui #mainView .section-title-row h2,
+.phone-ui #mainView .panel h2{
+  font-size:calc(var(--p-label,16px) * 1.45)!important;
+  line-height:1.15!important;
+  margin:0 0 5px!important;
+}
+.phone-ui #mainView .section-title-row .muted,
+.phone-ui #mainView .panel > .muted{
+  font-size:var(--p-small,11px)!important;
+  line-height:1.4!important;
+}
+.phone-ui #mainView #addAttendeeBtn{
+  min-height:calc(var(--p-role-h,46px) * 1.02)!important;
+  padding:calc(var(--p-gap,7px) * 1.2) calc(var(--p-gap,7px) * 1.7)!important;
+  font-size:calc(var(--p-small,11px) * 1.08)!important;
+  white-space:nowrap!important;
+}
+.phone-ui #mainView .full-search,
+.phone-ui #mainView input{
+  min-height:calc(var(--p-input-h,54px) * .88)!important;
+  padding:0 calc(var(--p-gap,7px) * 1.8)!important;
+  font-size:var(--p-label,16px)!important;
+  line-height:1.25!important;
+  border-width:2px!important;
+  border-radius:15px!important;
+}
+.phone-ui #mainView .full-search::placeholder,
+.phone-ui #mainView input::placeholder{
+  font-size:var(--p-label,16px)!important;
+  opacity:.85!important;
+}
+.phone-ui #attendeesPanel .attendee-list{
+  gap:calc(var(--p-gap,7px) * 1.15)!important;
+}
+.phone-ui #attendeesPanel .attendee-row{
+  padding:calc(var(--p-panel-pad,16px) * .9)!important;
+  gap:calc(var(--p-gap,7px) * 1.2)!important;
+  border-width:2px!important;
+  border-radius:17px!important;
+}
+.phone-ui #attendeesPanel .attendee-row strong{
+  font-size:calc(var(--p-label,16px) * 1.12)!important;
+  line-height:1.25!important;
+  font-weight:900!important;
+  color:#173f32!important;
+  margin-bottom:5px!important;
+  overflow-wrap:anywhere!important;
+}
+.phone-ui #attendeesPanel .attendee-row small{
+  display:block!important;
+  font-size:var(--p-small,11px)!important;
+  line-height:1.5!important;
+  font-weight:700!important;
+  color:#59645f!important;
+  overflow-wrap:anywhere!important;
+}
+.phone-ui #attendeesPanel .row-actions button{
+  min-height:calc(var(--p-role-h,46px) * .95)!important;
+  padding:calc(var(--p-gap,7px) * 1.1) calc(var(--p-gap,7px) * 1.5)!important;
+  font-size:var(--p-small,11px)!important;
+}
+.phone-ui #mainView button{
+  touch-action:manipulation;
+}
+
+/* On the smallest phones, keep the header clean but never shrink attendee text to tiny sizes. */
+@media (max-width:480px){
+  .phone-ui #mainView{
+    padding:12px!important;
+  }
+  .phone-ui #mainView .app-header{
+    align-items:flex-start!important;
+  }
+  .phone-ui #mainView .staff-badge{
+    display:none!important;
+  }
+  .phone-ui #mainView .section-title-row{
+    align-items:stretch!important;
+  }
+  .phone-ui #mainView #addAttendeeBtn{
+    width:100%!important;
+  }
+  .phone-ui #attendeesPanel .attendee-row strong{
+    font-size:max(18px,calc(var(--p-label,16px) * 1.05))!important;
+  }
+  .phone-ui #attendeesPanel .attendee-row small{
+    font-size:max(15px,var(--p-small,11px))!important;
+  }
+}
