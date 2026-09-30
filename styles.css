@@ -224,3 +224,37 @@
 
 /* ===== DRAFT QR RELEASE LOCK ===== */
 #sharePassBtn:disabled,#downloadPassBtn:disabled,#downloadAllQrBtn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.25)}
+
+
+/* ===== NEW FEATURE HIGHLIGHT — DISAPPEARS AFTER FIRST TAP ===== */
+.new-feature-highlight{
+  position:relative;
+  isolation:isolate;
+  outline:3px solid #e2b64d!important;
+  outline-offset:2px;
+  box-shadow:0 0 0 5px rgba(226,182,77,.18),0 8px 20px rgba(96,72,14,.12)!important;
+  animation:newFeaturePulse 1.6s ease-in-out infinite;
+}
+.new-feature-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:7px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#d91f24;
+  color:#fff;
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  line-height:1;
+  vertical-align:middle;
+}
+.new-feature-badge[hidden]{display:none!important}
+@keyframes newFeaturePulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(226,182,77,.15),0 8px 20px rgba(96,72,14,.10)}
+  50%{box-shadow:0 0 0 8px rgba(226,182,77,.07),0 10px 22px rgba(96,72,14,.14)}
+}
+@media (prefers-reduced-motion:reduce){
+  .new-feature-highlight{animation:none}
+}
