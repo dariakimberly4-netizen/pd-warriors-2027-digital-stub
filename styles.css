@@ -1205,3 +1205,41 @@
   #attendeesPanel .attendee-row small{font-size:17px!important}
   #addAttendeeBtn{font-size:17px!important;min-height:56px!important}
 }
+
+
+/* =========================================================
+   APPROVED MASTER ATTENDEE REGISTRATION DESIGN — LOCKED
+   Version: v21
+   Preserve the current Attendee Registration screen sizing,
+   proportions, typography, spacing, colors, cards and layout.
+   Functionality may be added without redesigning this screen.
+   ========================================================= */
+
+/* v22 functionality affordance only — no layout redesign */
+.attendee-row-clickable{
+  cursor:pointer;
+  touch-action:manipulation;
+}
+.attendee-row-clickable:focus-visible{
+  outline:3px solid var(--gold);
+  outline-offset:3px;
+}
+#attendeesPanel .attendee-row-clickable.new-feature-highlight{
+  position:relative;
+  outline:3px solid #d7a63c!important;
+  outline-offset:2px!important;
+}
+#attendeesPanel .attendee-row-clickable.new-feature-highlight::after{
+  content:"NEW • TAP TO OPEN"!important;
+  position:absolute!important;
+  top:8px!important;
+  right:10px!important;
+  padding:4px 7px!important;
+  border-radius:999px!important;
+  background:#d91f24!important;
+  color:#fff!important;
+  font-size:10px!important;
+  font-weight:950!important;
+  letter-spacing:.04em!important;
+  z-index:2!important;
+}
