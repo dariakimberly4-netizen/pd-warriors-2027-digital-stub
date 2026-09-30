@@ -8,7 +8,7 @@
   <title>GET TOGETHER 2027 — Digital Stub</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
   <main id="app">
@@ -133,7 +133,7 @@
 
           <div class="action-grid masterlist-actions">
             <button id="applyDraftBtn" class="primary xl">✓ APPLY CURRENT DRAFT</button>
-            <button id="downloadAllQrBtn" class="secondary xl">⬇ DOWNLOAD ALL QR PASSES</button>
+            <button id="downloadAllQrBtn" class="secondary xl" disabled>🔒 DOWNLOAD ALL QR PASSES</button>
             <label class="file-button secondary xl">⬆ IMPORT UPDATED CSV
               <input id="masterlistCsvInput" type="file" accept=".csv,text/csv" hidden />
             </label>
@@ -226,10 +226,10 @@
       <div id="passEntitlements" class="pass-entitlements"></div>
       <p class="save-note">Save this pass as a screenshot. The QR works without internet.</p>
       <div class="pass-action-grid">
-        <button id="sharePassBtn" class="primary xl">↗ SHARE QR</button>
-        <button id="downloadPassBtn" class="secondary xl">⬇ SAVE QR AS PNG</button>
+        <button id="sharePassBtn" class="primary xl" disabled>🔒 SHARE QR</button>
+        <button id="downloadPassBtn" class="secondary xl" disabled>🔒 SAVE QR AS PNG</button>
       </div>
-      <p id="passActionMessage" class="save-note" role="status"></p>
+      <p id="passActionMessage" class="save-note" role="status">QR release is locked while the masterlist is DRAFT.</p>
     </div>
   </dialog>
 
@@ -244,6 +244,6 @@
   </dialog>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
