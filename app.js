@@ -96,3 +96,22 @@ function renderAll(){renderStats();renderAttendeeList();renderRaffle();if(curren
 
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 showApp();renderAll();
+
+
+function fitLoginToScreen(){
+  const shell=document.querySelector('.login-shell');
+  const view=document.querySelector('#loginView');
+  if(!shell||!view||window.innerWidth>800) return;
+  shell.style.setProperty('--fit-scale','1');
+  requestAnimationFrame(()=>{
+    const available=window.innerHeight-4;
+    const needed=shell.scrollHeight;
+    let scale=Math.min(1,available/needed);
+    scale=Math.max(.72,scale);
+    shell.style.setProperty('--fit-scale',String(scale));
+  });
+}
+window.addEventListener('resize',fitLoginToScreen);
+window.addEventListener('orientationchange',()=>setTimeout(fitLoginToScreen,120));
+window.addEventListener('load',fitLoginToScreen);
+setTimeout(fitLoginToScreen,60);
