@@ -168,7 +168,7 @@ function showApp(){
   }
 }
 
-$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const u=$('#username').value.trim();const p=$('#password').value;if(STAFF_ACCOUNTS[u]&&p===DEMO_PASS){staff=u;sessionStorage.setItem(STAFF_KEY,staff);$('#loginError').textContent='';showApp()}else $('#loginError').textContent='Invalid staff account.'});
+$('#loginForm').addEventListener('submit',e=>{e.preventDefault();const u=$('#username').value.trim();const p=$('#password').value;const key=Object.keys(STAFF_ACCOUNTS).find(k=>k.toLowerCase()===u.toLowerCase());if(key&&p===DEMO_PASS){staff=key;sessionStorage.setItem(STAFF_KEY,staff);$('#loginError').textContent='';showApp()}else $('#loginError').textContent='Invalid staff account.'});
 $$('[data-demo]').forEach(b=>b.addEventListener('click',()=>{$('#username').value=b.dataset.demo;$('#password').value=DEMO_PASS;$('#loginForm').requestSubmit()}));
 $('#logoutBtn').addEventListener('click',()=>{staff='';sessionStorage.removeItem(STAFF_KEY);current=null;showApp()});
 
@@ -228,7 +228,7 @@ $('#attendeeSearch').addEventListener('input',renderAttendeeList);
 
 function nextId(type,linked){if(type==='PATIENT'){const nums=state.attendees.filter(a=>a.type==='PATIENT').map(a=>parseInt(a.id.match(/\d+/)?.[0]||0));return'PDW-'+String(Math.max(0,...nums)+1).padStart(4,'0')}const base=linked?.match(/PDW-(\d+)/)?.[1]||String(state.attendees.filter(a=>a.type==='COMPANION').length+1).padStart(4,'0');const siblings=state.attendees.filter(a=>a.type==='COMPANION'&&a.id.startsWith('COM-'+base)).length;return'COM-'+base+'-'+String.fromCharCode(65+siblings)}
 $('#addAttendeeBtn').onclick=()=>{if(!can('addAttendee'))return;$('#attendeeDialog').showModal()};$('#closeAttendeeDialog').onclick=()=>$('#attendeeDialog').close();
-$('#attendeeForm').addEventListener('submit',e=>{e.preventDefault();const name=$('#newName').value.trim(),type=$('#newType').value,linked=cleanCode($('#newLinkedPatient').value);if(!name)return;const a={id:nextId(type,linked),name,type,linkedPatient:type==='COMPANION'?linked:'',checkedIn:false,claims:{}};state.attendees.push(a);audit('ADD_ATTENDEE',a.id,a.name);saveState();e.target.reset();$('#attendeeDialog').close();showPass(a)});
+$('#attendeeForm').addEventListener('submit',e=>{e.preventDefault();const name=$('#newName').value.trim(),type=$('#newType').value,linked=cleanCode($('#newLinkedPatient').value);if(!name)return;const a={id:nextId(type,linked),name,type,linkedPatient:type==='COMPANION'?linked:'',checkedIn:false,claims:{}};state.attendees.push(a);audit('ADD_ATTENDEE',a.id,a.name);saveState();e.target.reset();$('#attendeeDialog').close();if(can('qrRelease'))showPass(a);else{const tab=$('.tab').find(x=>x.dataset.view==='attendees');tab?.click()}});
 
 
 
