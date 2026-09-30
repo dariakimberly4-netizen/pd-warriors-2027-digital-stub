@@ -4,3 +4,59 @@
 .modal{border:0;background:transparent;padding:10px;width:min(620px,96vw)}.modal::backdrop{background:rgba(8,22,16,.7);backdrop-filter:blur(3px)}.modal-card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow);max-height:92vh;overflow:auto}.modal-card h2,.modal-card h3{margin-top:0}.close-pass{position:absolute;right:14px;top:14px}.pass-card{text-align:center}.pass-card .type-pill{margin-top:4px}.qr-box{display:grid;place-items:center;background:white;border:1px solid var(--line);border-radius:20px;padding:18px;margin:16px auto;width:min(320px,100%);aspect-ratio:1}.qr-box canvas,.qr-box img{max-width:100%!important;height:auto!important}.pass-entitlements{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}.pass-entitlements span{padding:8px 11px;border-radius:999px;background:#eaf2ec;color:var(--green);font-weight:800}.save-note{font-size:.9rem;color:var(--muted)}#scannerVideo{width:100%;aspect-ratio:4/3;object-fit:cover;background:#111;border-radius:18px;margin:10px 0}.file-button{display:grid;place-items:center}
 @media(max-width:800px){.login-screen{grid-template-columns:1fr;padding:16px}.brand-card{padding:26px}.brand-card h1{font-size:2.6rem}.logo-mark{width:72px;height:72px}.tabs{grid-template-columns:1fr 1fr}.action-grid,.backup-grid,.claim-grid,.stats-grid{grid-template-columns:1fr 1fr}.claim-grid .claim-btn:last-child:nth-child(odd){grid-column:span 2}.raffle-box{grid-template-columns:1fr}.attendee-head,.section-title-row{align-items:stretch;flex-direction:column}.header-actions{align-items:flex-end}.staff-badge{display:none}.attendee-row{grid-template-columns:1fr}.attendee-row .row-actions{justify-content:flex-start}}
 @media(max-width:480px){#mainView{padding:12px}.panel{padding:17px;border-radius:22px}.tabs{position:sticky;top:0;z-index:5;background:var(--cream);padding:6px 0}.tab{font-size:.9rem;padding:10px 6px}.action-grid,.stats-grid,.claim-grid,.backup-grid{grid-template-columns:1fr}.claim-grid .claim-btn:last-child:nth-child(odd){grid-column:auto}.search-row{grid-template-columns:1fr}.app-header h1{font-size:1.8rem}.stat{padding:14px}.stat span{font-size:1.7rem}}
+
+
+/* ===== GET TOGETHER 2027 SIMPLE LOGIN — APPROVED MOBILE DESIGN ===== */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.login-simple{position:relative;overflow:hidden;display:block;max-width:none;margin:0;padding:0;background:linear-gradient(180deg,#fffdf8 0%,#fbf7eb 72%,#fffaf0 100%)}
+.login-shell{position:relative;z-index:2;width:min(680px,100%);min-height:100svh;margin:0 auto;padding:24px 18px 112px;display:flex;flex-direction:column;justify-content:center}
+.login-brand-simple{text-align:center;padding:0 8px 18px}
+.pdw-logo{display:block;width:clamp(138px,30vw,190px);height:auto;aspect-ratio:1/1;object-fit:contain;margin:0 auto 14px;filter:drop-shadow(0 6px 10px rgba(23,71,54,.08))}
+.event-title{display:flex;flex-direction:column;align-items:center;line-height:.88;margin-top:2px}
+.event-title span{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.6rem,9.4vw,4.5rem);font-weight:700;letter-spacing:-.045em;color:#0d4a37;white-space:nowrap}
+.event-title strong{font-family:Georgia,"Times New Roman",serif;font-size:clamp(3.25rem,12.5vw,5.5rem);font-weight:500;color:#d91f24;line-height:.9;margin-top:4px}
+.event-rule{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:11px;width:min(470px,88%);margin:10px auto 7px}
+.event-rule span{height:2px;background:#d7a63c}.event-rule i{width:9px;height:9px;background:#d7a63c;transform:rotate(45deg);border-radius:1px}
+.system-name{margin:0;color:#124d3b;font-size:clamp(.72rem,2.8vw,.95rem);font-weight:800;letter-spacing:.22em}
+.login-brand-simple .offline-pill{margin-top:12px;padding:7px 11px;font-size:.74rem;background:#edf4ef;box-shadow:none}
+.login-panel-simple{padding:20px 18px 18px;border-radius:28px;background:rgba(255,255,255,.82);border:1px solid rgba(201,184,153,.32);box-shadow:0 18px 42px rgba(51,59,45,.08);backdrop-filter:blur(5px)}
+.login-panel-simple label{margin:0}
+.login-field{position:relative;display:block;margin-bottom:12px!important}
+.login-field input{height:60px;padding:0 56px 0 58px;border:1.5px solid #ddd3c3;border-radius:18px;background:#fffefa;font-size:1.08rem;font-weight:500;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.login-field input::placeholder{color:#9d9d9d}
+.field-icon{position:absolute;z-index:2;left:21px;top:50%;transform:translateY(-50%);width:23px;height:23px;border-radius:50%;display:grid;place-items:center;color:transparent;background:#138150;box-shadow:0 9px 0 -3px #138150}
+.lock-icon{border-radius:5px;width:20px;height:23px;background:#0e5742;box-shadow:none}
+.lock-icon:before{content:"";position:absolute;width:12px;height:10px;border:3px solid #0e5742;border-bottom:0;border-radius:10px 10px 0 0;top:-8px;left:1px}
+.login-submit{width:100%;min-height:62px;border-radius:18px;background:linear-gradient(90deg,#0a6b48,#075d40);border:1.5px solid #d7a63c;box-shadow:0 8px 18px rgba(7,93,64,.2);display:flex;align-items:center;justify-content:center;position:relative;font-size:1.24rem;letter-spacing:.04em}
+.login-submit b{position:absolute;right:18px;width:38px;height:38px;border:2px solid #e5b752;border-radius:50%;display:grid;place-items:center;font-size:2rem;line-height:1;font-weight:400}
+.login-panel-simple .error{min-height:14px;margin:7px 0 0}
+.demo-divider{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:10px 0 13px}
+.demo-divider span{height:1.5px;background:#d9a640}.demo-divider strong{font-size:.78rem;letter-spacing:.12em;color:#0f4d3a;white-space:nowrap}
+.simple-demo-logins{border:0;margin:0;padding:0;gap:9px}
+.simple-demo-logins button{min-height:54px;padding:10px 17px;border:1.5px solid #d7a63c!important;border-radius:17px!important;background:#fffefa!important;color:#113f33!important;display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:12px;text-align:left;font-size:1rem}
+.simple-demo-logins button span{font-weight:800}.simple-demo-logins button b{font-size:1.8rem;font-weight:400;color:#0c5a42}
+.admin-dot{width:22px;height:22px;border-radius:50%;display:block;position:relative}
+.admin-dot:after{content:"";position:absolute;width:28px;height:14px;border-radius:14px 14px 6px 6px;left:-3px;top:20px;background:inherit}
+.admin-dot.gen{background:#138150}.admin-dot.bot{background:#d91f24}.admin-dot.kim{background:#d89b22}
+.login-wave{position:absolute;z-index:1;left:-8%;right:-8%;bottom:-58px;height:150px;background:linear-gradient(100deg,#0d5a42 0 52%,#d91f24 52% 100%);border-radius:48% 52% 0 0/38% 38% 0 0;transform:rotate(-1deg);box-shadow:0 -6px 0 #e1b554}
+@media(max-width:800px){
+  .login-simple{padding:0}
+  .login-shell{padding:18px 16px 104px;justify-content:flex-start}
+  .login-brand-simple{padding-top:10px}
+  .login-panel-simple{width:100%;margin:0 auto}
+}
+@media(max-width:480px){
+  .login-shell{min-height:100svh;padding:12px 14px 88px}
+  .pdw-logo{width:150px;margin-bottom:8px}
+  .event-title span{font-size:2.65rem}
+  .event-title strong{font-size:3.55rem}
+  .system-name{font-size:.7rem;letter-spacing:.17em}
+  .login-brand-simple{padding-bottom:12px}
+  .login-panel-simple{padding:16px 14px;border-radius:24px}
+  .login-field input{height:56px;border-radius:16px}
+  .login-submit{min-height:58px}
+  .demo-divider{gap:8px}
+  .demo-divider strong{font-size:.68rem;letter-spacing:.09em}
+  .simple-demo-logins button{min-height:52px;border-radius:15px!important}
+  .login-wave{height:120px;bottom:-52px}
+}
