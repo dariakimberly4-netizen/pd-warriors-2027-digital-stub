@@ -258,3 +258,44 @@
 @media (prefers-reduced-motion:reduce){
   .new-feature-highlight{animation:none}
 }
+
+
+/* ===== NEW FEATURE HIGHLIGHT RULE v10 =====
+   New feature = highlighted until first successful tap on this device. */
+[data-new-feature].new-feature-highlight{
+  position:relative;
+  overflow:visible;
+  outline:3px solid #e2b64d!important;
+  outline-offset:2px;
+  box-shadow:0 0 0 5px rgba(226,182,77,.18),0 8px 20px rgba(96,72,14,.12)!important;
+  animation:newFeaturePulse 1.6s ease-in-out infinite;
+}
+[data-new-feature].new-feature-highlight::after{
+  content:"NEW";
+  position:absolute;
+  top:-10px;
+  right:-7px;
+  z-index:4;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:22px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#d91f24;
+  color:#fff;
+  border:2px solid #fffdf8;
+  font-size:.58rem;
+  font-weight:950;
+  letter-spacing:.08em;
+  line-height:1;
+  pointer-events:none;
+}
+[data-new-feature]:disabled,
+[data-new-feature][aria-disabled="true"]{
+  animation:none!important;
+}
+[data-new-feature]:disabled::after,
+[data-new-feature][aria-disabled="true"]::after{
+  display:none!important;
+}
