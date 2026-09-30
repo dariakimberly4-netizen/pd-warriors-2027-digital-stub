@@ -4,11 +4,37 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#174736" />
+  <script>
+(function(){
+  try{
+    var touch=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);
+    var shortSide=Math.min(screen.width||9999,screen.height||9999);
+    if(touch&&shortSide<900){
+      document.documentElement.classList.add('phone-ui');
+      var vw=window.innerWidth||document.documentElement.clientWidth||shortSide;
+      var comp=vw>700?Math.min(2.35,vw/430):1;
+      var root=document.documentElement;
+      root.style.setProperty('--p-title',Math.round(42*comp)+'px');
+      root.style.setProperty('--p-year',Math.round(54*comp)+'px');
+      root.style.setProperty('--p-system',Math.round(12*comp)+'px');
+      root.style.setProperty('--p-panel-pad',Math.round(16*comp)+'px');
+      root.style.setProperty('--p-input-h',Math.round(54*comp)+'px');
+      root.style.setProperty('--p-input-font',Math.round(17*comp)+'px');
+      root.style.setProperty('--p-login-h',Math.round(56*comp)+'px');
+      root.style.setProperty('--p-admin-h',Math.round(48*comp)+'px');
+      root.style.setProperty('--p-role-h',Math.round(46*comp)+'px');
+      root.style.setProperty('--p-label',Math.round(16*comp)+'px');
+      root.style.setProperty('--p-small',Math.round(11*comp)+'px');
+      root.style.setProperty('--p-gap',Math.max(6,Math.round(7*comp))+'px');
+    }
+  }catch(e){}
+})();
+</script>
   <meta name="description" content="Offline-first digital QR stub and claiming system for PD Warriors Philippines Get Together 2027." />
   <title>GET TOGETHER 2027 — Digital Stub</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link rel="stylesheet" href="styles.css?v=16" />
 </head>
 <body>
   <main id="app">
@@ -286,6 +312,6 @@
   </dialog>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>
