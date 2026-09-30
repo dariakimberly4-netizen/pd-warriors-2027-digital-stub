@@ -619,3 +619,98 @@
   padding:5px 9px!important;
   font-size:.65rem!important;
 }
+
+
+/* ===== DESKTOP-VIEWPORT PHONE FIX v15 =====
+   Some Android browsers report a wide desktop-like CSS viewport and then scale it down.
+   On touch devices, use almost the entire reported width so the rendered UI fills the real screen. */
+@media (pointer:coarse){
+  .login-shell{
+    width:96vw!important;
+    max-width:none!important;
+    padding-left:2vw!important;
+    padding-right:2vw!important;
+  }
+  .login-brand-simple{
+    width:100%!important;
+  }
+  .event-title span{
+    font-size:clamp(3.6rem,8.4vw,6.2rem)!important;
+  }
+  .event-title strong{
+    font-size:clamp(4.4rem,10.8vw,7.2rem)!important;
+  }
+  .system-name{
+    font-size:clamp(.92rem,1.9vw,1.35rem)!important;
+  }
+  .login-panel-simple{
+    width:100%!important;
+    max-width:none!important;
+    padding:22px!important;
+  }
+  .login-field input{
+    height:64px!important;
+    min-height:64px!important;
+    font-size:1.15rem!important;
+  }
+  .login-submit{
+    height:66px!important;
+    min-height:66px!important;
+    font-size:1.24rem!important;
+  }
+  .simple-demo-logins button{
+    min-height:55px!important;
+    height:55px!important;
+    font-size:1.06rem!important;
+  }
+  .role-login-grid button{
+    min-height:54px!important;
+  }
+  .role-login-grid button strong{
+    font-size:1rem!important;
+  }
+}
+
+/* Keep it one-screen on short touch devices while still using full width. */
+@media (pointer:coarse) and (max-height:760px){
+  .login-shell{
+    width:96vw!important;
+    padding-left:2vw!important;
+    padding-right:2vw!important;
+  }
+  .event-title span{font-size:2.5rem!important}
+  .event-title strong{font-size:3.15rem!important}
+  .system-name{font-size:.7rem!important}
+  .login-panel-simple{padding:11px!important}
+  .login-field input{height:48px!important;min-height:48px!important}
+  .login-submit{height:50px!important;min-height:50px!important}
+  .simple-demo-logins button{height:41px!important;min-height:41px!important}
+  .role-login-grid button{min-height:40px!important}
+}
+
+/* Make the new-role highlight impossible to miss. */
+.role-login-grid.new-feature-highlight{
+  position:relative!important;
+  background:#fff4bd!important;
+  outline:6px solid #e0a91d!important;
+  outline-offset:5px!important;
+  box-shadow:0 0 0 12px rgba(224,169,29,.20),0 14px 34px rgba(90,67,10,.24)!important;
+}
+.role-login-grid.new-feature-highlight::after{
+  content:"NEW • TAP A STAFF ROLE"!important;
+  position:absolute!important;
+  top:-20px!important;
+  right:12px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:30px!important;
+  padding:6px 11px!important;
+  border-radius:999px!important;
+  background:#d91f24!important;
+  color:#fff!important;
+  border:3px solid #fffdf8!important;
+  font-size:.72rem!important;
+  font-weight:950!important;
+  letter-spacing:.05em!important;
+  z-index:20!important;
+}
