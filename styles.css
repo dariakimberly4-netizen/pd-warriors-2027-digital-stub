@@ -1243,3 +1243,23 @@
   letter-spacing:.04em!important;
   z-index:2!important;
 }
+
+
+/* ===== NATIVE TAPPABLE ATTENDEE CARDS v23 =====
+   Functionality only. Preserves locked v21 visual design. */
+#attendeesPanel .attendee-card-button{
+  width:100%;
+  appearance:none;
+  -webkit-appearance:none;
+  text-align:left;
+  font:inherit;
+  color:inherit;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+#attendeesPanel .attendee-card-button:active{
+  transform:none;
+}
+#attendeesPanel .attendee-card-button.new-feature-highlight::after{
+  content:"NEW • TAP TO OPEN"!important;
+}
