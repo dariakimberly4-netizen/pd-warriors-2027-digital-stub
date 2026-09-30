@@ -34,7 +34,7 @@
   <title>GET TOGETHER 2027 — Digital Stub</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
 </head>
 <body>
   <main id="app">
@@ -303,15 +303,15 @@
 
   <dialog id="attendeeDialog" class="modal">
     <form id="attendeeForm" class="modal-card">
-      <div class="section-title-row"><h2>Add Attendee</h2><button id="closeAttendeeDialog" type="button" class="ghost">✕</button></div>
+      <div class="section-title-row"><h2 id="attendeeDialogTitle">Add Attendee</h2><button id="closeAttendeeDialog" type="button" class="ghost">✕</button></div>
       <label>Full Name<input id="newName" required /></label>
       <label>Attendee Type<select id="newType"><option value="PATIENT">Patient / PD Warrior</option><option value="COMPANION">Companion</option></select></label>
       <label>Linked Patient ID (optional for Companion)<input id="newLinkedPatient" placeholder="PDW-0001" /></label>
-      <button type="submit" class="primary xl">CREATE ATTENDEE & QR</button>
+      <button id="attendeeSubmitBtn" type="submit" class="primary xl">CREATE ATTENDEE & QR</button>
     </form>
   </dialog>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
 </body>
 </html>
