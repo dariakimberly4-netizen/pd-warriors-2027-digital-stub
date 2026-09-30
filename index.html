@@ -8,7 +8,7 @@
   <title>GET TOGETHER 2027 — Digital Stub</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body>
   <main id="app">
@@ -71,6 +71,7 @@
 
       <nav class="tabs" aria-label="Main navigation">
         <button class="tab active" data-view="claim">Scan / Claim</button>
+        <button class="tab" data-view="masterlist">Masterlist</button>
         <button class="tab" data-view="attendees">Attendees</button>
         <button class="tab" data-view="raffle">Raffle</button>
         <button class="tab" data-view="backup">Backup</button>
@@ -109,6 +110,48 @@
           <article class="stat"><span id="statSnack">0</span><small>Snacks Claimed</small></article>
           <article class="stat"><span id="statLunch">0</span><small>Lunch Claimed</small></article>
           <article class="stat"><span id="statRaffle">0</span><small>Raffle Claimed</small></article>
+        </div>
+      </section>
+
+
+      <section id="masterlistPanel" class="view-panel hidden">
+        <div class="panel">
+          <div class="section-title-row">
+            <div>
+              <p class="type-pill draft-pill">DRAFT — NOT FINAL</p>
+              <h2>Draft Masterlist</h2>
+              <p class="muted">Current snapshot from your Google Sheet — Sheet1. You can replace it with an updated CSV later without rebuilding the system.</p>
+            </div>
+          </div>
+
+          <div class="stats-grid masterlist-stats">
+            <article class="stat"><span id="draftPatients">0</span><small>Patients</small></article>
+            <article class="stat"><span id="draftCompanions">0</span><small>Companions</small></article>
+            <article class="stat"><span id="draftTotal">0</span><small>Total Draft</small></article>
+            <article class="stat"><span id="draftReview">0</span><small>Needs Review</small></article>
+          </div>
+
+          <div class="action-grid masterlist-actions">
+            <button id="applyDraftBtn" class="primary xl">✓ APPLY CURRENT DRAFT</button>
+            <label class="file-button secondary xl">⬆ IMPORT UPDATED CSV
+              <input id="masterlistCsvInput" type="file" accept=".csv,text/csv" hidden />
+            </label>
+          </div>
+
+          <div id="masterlistMessage" class="claim-message"></div>
+
+          <div class="panel inset masterlist-note">
+            <h3>Safe update rules</h3>
+            <ul>
+              <li>Existing QR IDs are preserved whenever the same attendee can be matched.</li>
+              <li>New companions receive new unique QR IDs.</li>
+              <li>Records removed from a later draft are marked inactive instead of silently deleted.</li>
+              <li>Companions remain Snack + Lunch only. They never receive Raffle.</li>
+            </ul>
+          </div>
+
+          <input id="masterlistSearch" class="full-search" placeholder="Search current draft…" />
+          <div id="masterlistPreview" class="attendee-list"></div>
         </div>
       </section>
 
@@ -196,6 +239,6 @@
   </dialog>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
