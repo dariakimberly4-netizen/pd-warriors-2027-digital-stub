@@ -104,6 +104,8 @@ function audit(action,attendeeId='',detail=''){state.audit.push({id:crypto.rando
 function nowText(iso){return new Date(iso).toLocaleString()}
 function cleanCode(v){return String(v||'').trim().toUpperCase().replace(/^PDW2027:/,'')}
 function entitlements(a){return a.type==='PATIENT'?['SNACK','LUNCH','RAFFLE']:['SNACK','LUNCH']}
+function isMasterlistFinalized(){return state?.masterlist?.status==='FINAL'}
+function qrReleaseAllowed(){return isMasterlistFinalized()}
 function byId(id){return state.attendees.find(a=>a.id===cleanCode(id))}
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 
@@ -184,10 +186,11 @@ async function saveQrPng(attendee){
   document.body.appendChild(a);a.click();a.remove();
 }
 
-function showPass(a){current=a;$('#passActionMessage').textContent='';$('#passType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';$('#passName').textContent=a.name;$('#passId').textContent=a.id;$('#passEntitlements').innerHTML=entitlements(a).map(x=>`<span>✓ ${x}</span>`).join('');const q=$('#qrBox');q.innerHTML='';new QRCode(q,{text:'PDW2027:'+a.id,width:280,height:280,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('#passDialog').showModal()}
+function showPass(a){current=a;const allowed=qrReleaseAllowed();$('#sharePassBtn').disabled=!allowed;$('#downloadPassBtn').disabled=!allowed;$('#sharePassBtn').textContent=allowed?'↗ SHARE QR':'🔒 SHARE QR';$('#downloadPassBtn').textContent=allowed?'⬇ SAVE QR AS PNG':'🔒 SAVE QR AS PNG';$('#passActionMessage').textContent=allowed?'':'QR release is locked while the masterlist is DRAFT.';$('#passType').textContent=a.type==='PATIENT'?'PATIENT / PD WARRIOR':'COMPANION';$('#passName').textContent=a.name;$('#passId').textContent=a.id;$('#passEntitlements').innerHTML=entitlements(a).map(x=>`<span>✓ ${x}</span>`).join('');const q=$('#qrBox');q.innerHTML='';new QRCode(q,{text:'PDW2027:'+a.id,width:280,height:280,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});$('#passDialog').showModal()}
 $('#showPassBtn').onclick=()=>current&&showPass(current);$('#closePassBtn').onclick=()=>$('#passDialog').close();
 $('#downloadPassBtn').onclick=async()=>{
   if(!current)return;
+  if(!qrReleaseAllowed()){const msg=$('#passActionMessage');msg.textContent='QR release is locked until the masterlist is FINAL.';return}
   const msg=$('#passActionMessage');
   try{
     msg.textContent='Preparing QR image…';
@@ -199,6 +202,7 @@ $('#downloadPassBtn').onclick=async()=>{
 };
 $('#sharePassBtn').onclick=async()=>{
   if(!current)return;
+  if(!qrReleaseAllowed()){const msg=$('#passActionMessage');msg.textContent='QR sharing is locked until the masterlist is FINAL.';return}
   const msg=$('#passActionMessage');
   try{
     msg.textContent='Preparing QR to share…';
@@ -244,7 +248,7 @@ $('#scanBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#sca
 
 function renderAll(){renderStats();renderAttendeeList();renderRaffle();renderMasterlist();if(current){const refreshed=byId(current.id);if(refreshed){current=refreshed;renderClaimButtons()}}}
 
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=8',{updateViaCache:'none'}).catch(()=>{}));
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js?v=9',{updateViaCache:'none'}).catch(()=>{}));
 
 const LEGACY_DEMO_IDS=new Set(['PDW-0001','COM-0001-A','COM-0001-B','PDW-0002','COM-0002-A','PDW-0003']);
 const LEGACY_DEMO_NAMES=new Set(['juan dela cruz','maria dela cruz','ana dela cruz','liza santos','mila santos','ramon reyes']);
@@ -271,6 +275,7 @@ function summarizeDraft(list){
 }
 function renderMasterlist(){
   const draft=sampleAttendees;
+  const qrBtn=$('#downloadAllQrBtn');if(qrBtn){const final=isMasterlistFinalized();qrBtn.disabled=!final;qrBtn.textContent=final?'⬇ DOWNLOAD ALL QR PASSES':'🔒 DOWNLOAD ALL QR PASSES'}
   const s=summarizeDraft(draft);
   $('#draftPatients').textContent=s.patients;
   $('#draftCompanions').textContent=s.companions;
@@ -376,6 +381,7 @@ function csvToDraftRows(matrix){
 
 $('#downloadAllQrBtn')?.addEventListener('click',async()=>{
   const btn=$('#downloadAllQrBtn'),msg=$('#masterlistMessage');
+  if(!qrReleaseAllowed()){msg.textContent='🔒 QR pass release is locked while the masterlist is DRAFT. Finalize the masterlist first.';msg.style.color='var(--danger)';return}
   const active=state.attendees.filter(a=>a.draftStatus!=='REMOVED'&&!a.inactive);
   if(!active.length){msg.textContent='No active attendees to download.';return}
   const ok=confirm('Download '+active.length+' QR passes?\\n\\nYour browser may ask permission to allow multiple downloads.');
