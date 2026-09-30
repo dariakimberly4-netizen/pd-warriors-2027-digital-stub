@@ -209,3 +209,15 @@
 .draft-mini{font-size:.72rem;font-weight:900;letter-spacing:.08em;color:#7b5b00;background:#fff4d7;border:1px solid #e0bd58;border-radius:999px;padding:6px 9px}
 @media(max-width:800px){.tabs{grid-template-columns:1fr 1fr}.masterlist-actions{grid-template-columns:1fr}.masterlist-stats{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.masterlist-stats{grid-template-columns:1fr 1fr}.masterlist-row{grid-template-columns:1fr auto}}
+
+
+/* ===== QR SHARE & BATCH DOWNLOAD ===== */
+.pass-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.pass-action-grid .xl{min-width:0}
+#passActionMessage{min-height:1.2em;margin:8px 0 0}
+.masterlist-actions{grid-template-columns:repeat(3,1fr)}
+#downloadAllQrBtn:disabled{opacity:.62;cursor:progress}
+@media(max-width:800px){
+  .masterlist-actions{grid-template-columns:1fr}
+  .pass-action-grid{grid-template-columns:1fr}
+}
